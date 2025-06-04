@@ -1,0 +1,47 @@
+# This workflow deploys OVH landing zone resources using Terraform
+name: 'Terraform OVH Landing Zone'
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'providers/ovh/**'
+      - '.github/workflows/terraform-ovh.yml'
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    env:
+      OVH_ENDPOINT: ${{ secrets.OVH_ENDPOINT }}
+      OVH_APPLICATION_KEY: ${{ secrets.OVH_APPLICATION_KEY }}
+      OVH_APPLICATION_SECRET: ${{ secrets.OVH_APPLICATION_SECRET }}
+      OVH_CONSUMER_KEY: ${{ secrets.OVH_CONSUMER_KEY }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.7.5
+
+      - name: Terraform Init
+        run: terraform -chdir=providers/ovh init --reconfigure
+
+      - name: Terraform Plan
+        run: terraform -chdir=providers/ovh plan
+
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/main'
+        run: terraform -chdir=providers/ovh apply -auto-approve
+
+      - name: Output Terraform Results
+        run: |
+          terraform -chdir=providers/ovh output -json > ovh-outputs.json
+          cat ovh-outputs.json
+
+      - name: Upload Outputs as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ovh-terraform-outputs
+          path: providers/ovh/ovh-outputs.json

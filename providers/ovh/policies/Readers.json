@@ -1,0 +1,16 @@
+{
+  "Version": "2022-09-13",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "*:*:get*",
+        "*:*:list*",
+        "*:*:read*"
+      ],
+      "Resource": [
+        "/cloud/project/${ovh_cloud_project.main.id}/*"
+      ]
+    }
+  ]
+}

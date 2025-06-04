@@ -1,0 +1,26 @@
+# .gitignore for OVH Landing Zone Project
+
+# Terraform state and crash files
+*.tfstate
+*.tfstate.*
+crash.log
+
+# Terraform variable files containing secrets
+*.tfvars
+*.tfvars.json
+
+# Terraform plan files
+*.tfplan
+
+# .terraform directory
+.terraform/
+
+# VS Code settings
+.vscode/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Output artifacts
+ovh-outputs.json

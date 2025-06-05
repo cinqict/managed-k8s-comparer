@@ -19,9 +19,29 @@ provider "ovh" {
   consumer_key       = var.ovh_consumer_key
 }
 
+data "ovh_me" "myaccount" {}
+
+data "ovh_order_cart" "mycart" {
+  ovh_subsidiary = data.ovh_me.myaccount.ovh_subsidiary
+}
+
+data "ovh_order_cart_product_plan" "cloud" {
+  cart_id        = data.ovh_order_cart.mycart.id
+  price_capacity = "renew"
+  product        = "cloud"
+  plan_code      = "project.2018"
+}
+
 # Example: Create a Public Cloud Project (required for most OVH resources)
 resource "ovh_cloud_project" "main" {
-  description = "Landing Zone Project"
+  ovh_subsidiary = data.ovh_order_cart.mycart.ovh_subsidiary
+  description    = "Landing Zone Project"
+
+  plan {
+    duration     = data.ovh_order_cart_product_plan.cloud.selected_price[0].duration
+    plan_code    = data.ovh_order_cart_product_plan.cloud.plan_code
+    pricing_mode = data.ovh_order_cart_product_plan.cloud.selected_price[0].pricing_mode
+  }
 }
 
 # Example: Create a Network (Private Network)

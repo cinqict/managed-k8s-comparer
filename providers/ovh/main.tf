@@ -31,27 +31,15 @@ resource "ovh_cloud_project_network_private" "vnet" {
   regions      = ["GRA"] # Change to your preferred region
 }
 
-# Example: Create a PostgreSQL Managed Database
-resource "ovh_cloud_project_database_postgresql" "db" {
+# Update Object Storage to supported resource
+resource "ovh_cloud_project_object_storage_container" "bucket" {
   service_name = ovh_cloud_project.main.id
-  description  = "Landing Zone PostgreSQL"
-  plan         = "essential"
-  version      = "15"
-  nodes {
-    region = "GRA"
-    flavor = "db1-7"
-  }
-}
-
-# Example: Create Object Storage
-resource "ovh_cloud_project_storage" "bucket" {
-  service_name = ovh_cloud_project.main.id
+  region_name  = "GRA"
   name         = "landingzone-bucket"
-  region       = "GRA"
-  container    = true
+  public       = false
 }
 
-# Example: Create a Managed Kubernetes Cluster
+# Update Kubernetes Cluster resource and add node pool
 resource "ovh_cloud_project_kube" "cluster" {
   service_name = ovh_cloud_project.main.id
   name         = "landing-zone-k8s"
@@ -60,36 +48,27 @@ resource "ovh_cloud_project_kube" "cluster" {
   private_network_id = ovh_cloud_project_network_private.vnet.id
   private_network_configuration {
     default_vrack_gateway = true
-  }
-  node_pool {
-    name       = "default"
-    flavor_id  = "b2-7"
-    desired_nodes = 2
-    max_nodes     = 3
-    min_nodes     = 1
-    autoscale     = true
+    private_network_routing_as_default = true
   }
 }
 
-# IAM Groups (Roles) for the Landing Zone
-resource "ovh_iam_policy" "group" {
-  for_each    = toset(var.iam_groups)
-  name        = each.value
-  description = "${each.value} group for landing zone access"
-  policy      = file("${path.module}/policies/${each.value}.json")
+resource "ovh_cloud_project_kube_nodepool" "default" {
+  service_name = ovh_cloud_project.main.id
+  kube_id      = ovh_cloud_project_kube.cluster.id
+  name         = "default"
+  flavor_name  = "b2-7"
+  desired_nodes = 2
+  max_nodes     = 3
+  min_nodes     = 1
+  autoscale     = true
 }
 
 # Outputs
 output "kubeconfig" {
-  value = ovh_cloud_project_kube.cluster.kubeconfig
-  sensitive = true
-}
-
-output "postgresql_uri" {
-  value = ovh_cloud_project_database_postgresql.db.uri
+  value     = ovh_cloud_project_kube.cluster.kubeconfig
   sensitive = true
 }
 
 output "object_storage_name" {
-  value = ovh_cloud_project_storage.bucket.name
+  value = ovh_cloud_project_object_storage_container.bucket.name
 }

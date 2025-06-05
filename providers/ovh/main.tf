@@ -32,11 +32,13 @@ resource "ovh_cloud_project_network_private" "vnet" {
 }
 
 # Update Object Storage to supported resource
-resource "ovh_cloud_project_object_storage_container" "bucket" {
+resource "ovh_cloud_project_storage" "storage" {
   service_name = ovh_cloud_project.main.id
   region_name  = "GRA"
   name         = "landingzone-bucket"
-  public       = false
+  versioning = {
+    status = "enabled"
+  }
 }
 
 # Update Kubernetes Cluster resource and add node pool
@@ -70,5 +72,5 @@ output "kubeconfig" {
 }
 
 output "object_storage_name" {
-  value = ovh_cloud_project_object_storage_container.bucket.name
+  value = ovh_cloud_project_storage.storage.name
 }

@@ -41,11 +41,11 @@ jobs:
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main'
         run: |
-          $start = Get-Date
+          start=$(date +%s)
           terraform -chdir=providers/ovh apply -auto-approve
-          $end = Get-Date
-          $duration = $end - $start
-          echo "Terraform apply duration: $($duration.TotalSeconds) seconds" | Out-File -FilePath apply_duration.txt
+          end=$(date +%s)
+          duration=$((end - start))
+          echo "Terraform apply duration: ${duration} seconds" > apply_duration.txt
 
       - name: Output Terraform Results
         run: |

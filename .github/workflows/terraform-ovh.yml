@@ -25,6 +25,13 @@ jobs:
         with:
           terraform_version: 1.7.5
 
+      - name: Debug OVH Environment Variables
+        run: |
+          echo "OVH_ENDPOINT: $OVH_ENDPOINT"
+          echo "OVH_APPLICATION_KEY: ${OVH_APPLICATION_KEY:+set}" # do not print secrets
+          echo "OVH_APPLICATION_SECRET: ${OVH_APPLICATION_SECRET:+set}"
+          echo "OVH_CONSUMER_KEY: ${OVH_CONSUMER_KEY:+set}"
+
       - name: Terraform Init
         run: terraform -chdir=providers/ovh init --reconfigure
 

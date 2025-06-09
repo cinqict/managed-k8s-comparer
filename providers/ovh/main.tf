@@ -52,14 +52,14 @@ provider "ovh" {
 
 # Example: Create a Network (Private Network)
 resource "ovh_cloud_project_network_private" "vnet" {
-  # service_name = ovh_cloud_project.main.id
+  service_name = var.ovh_project_id
   name         = "landing-zone-vnet"
   regions      = ["GRA"] # Change to your preferred region
 }
 
 # Update Object Storage to supported resource
 resource "ovh_cloud_project_storage" "storage" {
-  # service_name = ovh_cloud_project.main.id
+  service_name = var.ovh_project_id
   region_name  = "GRA"
   name         = "landingzone-bucket"
   versioning = {
@@ -69,7 +69,7 @@ resource "ovh_cloud_project_storage" "storage" {
 
 # Update Kubernetes Cluster resource and add node pool
 resource "ovh_cloud_project_kube" "cluster" {
-  # service_name = ovh_cloud_project.main.id
+  service_name = var.ovh_project_id
   name         = "landing-zone-k8s"
   region       = "GRA"
   version      = "1.29"
@@ -81,7 +81,7 @@ resource "ovh_cloud_project_kube" "cluster" {
 }
 
 resource "ovh_cloud_project_kube_nodepool" "default" {
-  # service_name = ovh_cloud_project.main.id
+  service_name  = ovh_cloud_project_kube.cluster.service_name
   kube_id      = ovh_cloud_project_kube.cluster.id
   name         = "default"
   flavor_name  = "b2-7"

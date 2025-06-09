@@ -16,6 +16,10 @@ jobs:
       TF_VAR_ovh_application_key: ${{ secrets.OVH_APPLICATION_KEY }}
       TF_VAR_ovh_application_secret: ${{ secrets.OVH_APPLICATION_SECRET }}
       TF_VAR_ovh_consumer_key: ${{ secrets.OVH_CONSUMER_KEY }}
+      AZ_CLIENT_ID: ${{ secrets.AZ_CLIENT_ID }}
+      AZ_CLIENT_SECRET: ${{ secrets.AZ_CLIENT_SECRET }}
+      AZ_SUBSCRIPTION_ID: ${{ secrets.AZ_SUBSCRIPTION_ID }}
+      AZ_TENANT_ID: ${{ secrets.AZ_TENANT_ID }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -24,13 +28,6 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.7.5
-
-      - name: Debug OVH Environment Variables
-        run: |
-          echo "OVH_ENDPOINT: $OVH_ENDPOINT"
-          echo "OVH_APPLICATION_KEY: ${OVH_APPLICATION_KEY:+set}" # do not print secrets
-          echo "OVH_APPLICATION_SECRET: ${OVH_APPLICATION_SECRET:+set}"
-          echo "OVH_CONSUMER_KEY: ${OVH_CONSUMER_KEY:+set}"
 
       - name: Terraform Init
         run: terraform -chdir=providers/ovh init --reconfigure

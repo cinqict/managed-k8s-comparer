@@ -73,7 +73,7 @@ resource "ovh_cloud_project_kube" "cluster" {
   name         = "landing-zone-k8s"
   region       = "GRA9"
   version      = "1.31"
-  private_network_id = ovh_cloud_project_network_private.vnet.id
+  private_network_id = ovh_cloud_project_network_private.vnet.network_id
   private_network_configuration {
     default_vrack_gateway = true
     private_network_routing_as_default = true

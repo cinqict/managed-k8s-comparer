@@ -54,14 +54,14 @@ provider "ovh" {
 resource "ovh_cloud_project_network_private" "vnet" {
   service_name = var.ovh_project_id
   name         = "landing-zone-vnet"
-  regions      = ["GRA"] # Change to your preferred region
+  regions      = ["GRA9"]
 }
 
 # Update Object Storage to supported resource
 resource "ovh_cloud_project_storage" "storage" {
   service_name = var.ovh_project_id
-  region_name  = "GRA"
-  name         = "landingzone-bucket"
+  region_name  = "GRA9"
+  name         = "nhs-landingzone-bucket"
   versioning = {
     status = "enabled"
   }
@@ -71,7 +71,7 @@ resource "ovh_cloud_project_storage" "storage" {
 resource "ovh_cloud_project_kube" "cluster" {
   service_name = var.ovh_project_id
   name         = "landing-zone-k8s"
-  region       = "GRA"
+  region       = "GRA9"
   version      = "1.29"
   private_network_id = ovh_cloud_project_network_private.vnet.id
   private_network_configuration {

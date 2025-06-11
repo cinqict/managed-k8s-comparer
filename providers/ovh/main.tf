@@ -51,24 +51,24 @@ provider "ovh" {
 # }
 
 # Example: Create a Network (Private Network)
-resource "ovh_cloud_project_network_private" "vnet" {
-  service_name = var.ovh_project_id
-  name         = "landing-zone-vnet"
-  regions      = ["GRA11"]
-}
+# resource "ovh_cloud_project_network_private" "vnet" {
+#   service_name = var.ovh_project_id
+#   name         = "landing-zone-vnet"
+#   regions      = ["GRA11"]
+# }
 
-resource "ovh_cloud_project_network_private_subnet" "subnet" {
-  service_name = var.service_name
-  network_id   = ovh_cloud_project_network_private.network.id
+# resource "ovh_cloud_project_network_private_subnet" "subnet" {
+#   service_name = var.service_name
+#   network_id   = ovh_cloud_project_network_private.network.id
 
-  # whatever region, for test purpose
-  region     = "GRA11"
-  start      = "192.168.168.100"
-  end        = "192.168.168.200"
-  network    = "192.168.168.0/24"
-  dhcp       = true
-  no_gateway = false
-}
+#   # whatever region, for test purpose
+#   region     = "GRA11"
+#   start      = "192.168.168.100"
+#   end        = "192.168.168.200"
+#   network    = "192.168.168.0/24"
+#   dhcp       = true
+#   no_gateway = false
+# }
 
 # Update Object Storage to supported resource
 resource "ovh_cloud_project_storage" "storage" {
@@ -86,15 +86,15 @@ resource "ovh_cloud_project_kube" "cluster" {
   name         = "landing-zone-k8s"
   region       = "GRA11"
   version      = "1.31"
-  private_network_id = tolist(ovh_cloud_project_network_private.vnet.regions_attributes[*].openstackid)[0]
-  nodes_subnet_id = ovh_cloud_project_network_private_subnet.subnet.id
-  private_network_configuration {
-      default_vrack_gateway              = ""
-      private_network_routing_as_default = false
-  }
-  depends_on = [
-    ovh_cloud_project_network_private.vnet
-  ] 
+  # private_network_id = tolist(ovh_cloud_project_network_private.vnet.regions_attributes[*].openstackid)[0]
+  # nodes_subnet_id = ovh_cloud_project_network_private_subnet.subnet.id
+  # private_network_configuration {
+  #     default_vrack_gateway              = ""
+  #     private_network_routing_as_default = false
+  # }
+  # depends_on = [
+  #   ovh_cloud_project_network_private.vnet
+  # ] 
 }
 
 resource "ovh_cloud_project_kube_nodepool" "default" {

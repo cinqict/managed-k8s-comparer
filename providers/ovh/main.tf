@@ -84,7 +84,7 @@ resource "ovh_cloud_project_storage" "storage" {
 resource "ovh_cloud_project_kube" "cluster" {
   service_name = var.ovh_project_id
   name         = "landing-zone-k8s"
-  region       = "GRA11"
+  region       = "GRA9"
   version      = "1.31"
   # private_network_id = tolist(ovh_cloud_project_network_private.vnet.regions_attributes[*].openstackid)[0]
   # nodes_subnet_id = ovh_cloud_project_network_private_subnet.subnet.id
@@ -101,7 +101,7 @@ resource "ovh_cloud_project_kube_nodepool" "default" {
   service_name  = ovh_cloud_project_kube.cluster.service_name
   kube_id      = ovh_cloud_project_kube.cluster.id
   name         = "default"
-  flavor_name  = "b2-7"
+  flavor_name  = "b3-8"
   desired_nodes = 2
   max_nodes     = 3
   min_nodes     = 1

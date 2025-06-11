@@ -1,15 +1,11 @@
-# This workflow deploys OVH landing zone resources using Terraform
-name: 'Terraform OVH Landing Zone'
+# This workflow destroys OVH landing zone resources using Terraform
+name: 'Terraform OVH Destroy'
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - 'providers/ovh/**'
-      - '.github/workflows/terraform-ovh.yml'
 
 jobs:
-  terraform:
+  terraform-destroy:
     runs-on: ubuntu-latest
     env:
       TF_VAR_ovh_endpoint: ${{ secrets.OVH_ENDPOINT }}
@@ -37,28 +33,5 @@ jobs:
       - name: Terraform Init
         run: terraform -chdir=providers/ovh init --reconfigure
 
-      - name: Terraform Plan
-        run: terraform -chdir=providers/ovh plan
-
-      - name: Terraform Apply
-        if: github.ref == 'refs/heads/main'
-        run: |
-          start=$(date +%s)
-          terraform -chdir=providers/ovh apply -auto-approve
-          end=$(date +%s)
-          duration=$((end - start))
-          echo "Terraform apply duration: ${duration} seconds" > apply_duration.txt
-
-      - name: Output Terraform Results
-        run: |
-          terraform -chdir=providers/ovh output -json > ovh-outputs.json
-          cat ovh-outputs.json
-          cat apply_duration.txt
-
-      - name: Upload Outputs as Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ovh-terraform-outputs
-          path: |
-            providers/ovh/ovh-outputs.json
-            apply_duration.txt
+      - name: Terraform Destroy
+        run: terraform -chdir=providers/ovh destroy -auto-approve

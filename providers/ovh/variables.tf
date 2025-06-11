@@ -5,6 +5,11 @@ variable "ovh_endpoint" {
   type        = string
 }
 
+variable "ovh_project_id" {
+  description = "OVH Project ID for the landing zone"
+  type        = string
+}
+
 variable "ovh_application_key" {
   description = "OVH API application key"
   type        = string

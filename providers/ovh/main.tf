@@ -10,6 +10,12 @@ terraform {
       version = ">= 0.44.0"
     }
   }
+  backend "azurerm" {
+    resource_group_name  = "rg-noudsavenije-devops"
+    storage_account_name = "noudstfbackend"
+    container_name       = "ovhtfstate"
+    key                  = "terraform.tfstate"
+  }
 }
 
 provider "ovh" {
@@ -19,23 +25,56 @@ provider "ovh" {
   consumer_key       = var.ovh_consumer_key
 }
 
-# Example: Create a Public Cloud Project (required for most OVH resources)
-resource "ovh_cloud_project" "main" {
-  description = "Landing Zone Project"
-}
+# data "ovh_me" "myaccount" {}
+
+# data "ovh_order_cart" "mycart" {
+#   ovh_subsidiary = data.ovh_me.myaccount.ovh_subsidiary
+# }
+
+# data "ovh_order_cart_product_plan" "cloud" {
+#   cart_id        = data.ovh_order_cart.mycart.id
+#   price_capacity = "renew"
+#   product        = "cloud"
+#   plan_code      = "project.2018"
+# }
+
+# # Example: Create a Public Cloud Project (required for most OVH resources)
+# resource "ovh_cloud_project" "main" {
+#   ovh_subsidiary = data.ovh_order_cart.mycart.ovh_subsidiary
+#   description    = "Landing Zone Project"
+
+#   plan {
+#     duration     = data.ovh_order_cart_product_plan.cloud.selected_price[0].duration
+#     plan_code    = data.ovh_order_cart_product_plan.cloud.plan_code
+#     pricing_mode = data.ovh_order_cart_product_plan.cloud.selected_price[0].pricing_mode
+#   }
+# }
 
 # Example: Create a Network (Private Network)
-resource "ovh_cloud_project_network_private" "vnet" {
-  service_name = ovh_cloud_project.main.id
-  name         = "landing-zone-vnet"
-  regions      = ["GRA"] # Change to your preferred region
-}
+# resource "ovh_cloud_project_network_private" "vnet" {
+#   service_name = var.ovh_project_id
+#   name         = "landing-zone-vnet"
+#   regions      = ["GRA11"]
+# }
+
+# resource "ovh_cloud_project_network_private_subnet" "subnet" {
+#   service_name = var.service_name
+#   network_id   = ovh_cloud_project_network_private.network.id
+
+#   # whatever region, for test purpose
+#   region     = "GRA11"
+#   start      = "192.168.168.100"
+#   end        = "192.168.168.200"
+#   network    = "192.168.168.0/24"
+#   dhcp       = true
+#   no_gateway = false
+# }
 
 # Update Object Storage to supported resource
 resource "ovh_cloud_project_storage" "storage" {
-  service_name = ovh_cloud_project.main.id
+  service_name = var.ovh_project_id
   region_name  = "GRA"
-  name         = "landingzone-bucket"
+  name         = "nhs-landingzone-bucket"
   versioning = {
     status = "enabled"
   }
@@ -43,22 +82,26 @@ resource "ovh_cloud_project_storage" "storage" {
 
 # Update Kubernetes Cluster resource and add node pool
 resource "ovh_cloud_project_kube" "cluster" {
-  service_name = ovh_cloud_project.main.id
+  service_name = var.ovh_project_id
   name         = "landing-zone-k8s"
-  region       = "GRA"
-  version      = "1.29"
-  private_network_id = ovh_cloud_project_network_private.vnet.id
-  private_network_configuration {
-    default_vrack_gateway = true
-    private_network_routing_as_default = true
-  }
+  region       = "GRA9"
+  version      = "1.31"
+  # private_network_id = tolist(ovh_cloud_project_network_private.vnet.regions_attributes[*].openstackid)[0]
+  # nodes_subnet_id = ovh_cloud_project_network_private_subnet.subnet.id
+  # private_network_configuration {
+  #     default_vrack_gateway              = ""
+  #     private_network_routing_as_default = false
+  # }
+  # depends_on = [
+  #   ovh_cloud_project_network_private.vnet
+  # ] 
 }
 
 resource "ovh_cloud_project_kube_nodepool" "default" {
-  service_name = ovh_cloud_project.main.id
+  service_name  = ovh_cloud_project_kube.cluster.service_name
   kube_id      = ovh_cloud_project_kube.cluster.id
   name         = "default"
-  flavor_name  = "b2-7"
+  flavor_name  = "b3-8"
   desired_nodes = 2
   max_nodes     = 3
   min_nodes     = 1

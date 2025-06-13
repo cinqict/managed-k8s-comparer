@@ -51,24 +51,47 @@ provider "ovh" {
 # }
 
 # Example: Create a Network (Private Network)
-# resource "ovh_cloud_project_network_private" "vnet" {
-#   service_name = var.ovh_project_id
-#   name         = "landing-zone-vnet"
-#   regions      = ["GRA11"]
-# }
+resource "ovh_cloud_project_network_private" "vnet" {
+  service_name = var.ovh_project_id
+  name         = "landing-zone-vnet"
+  regions      = ["GRA11"]
+}
 
-# resource "ovh_cloud_project_network_private_subnet" "subnet" {
-#   service_name = var.service_name
-#   network_id   = ovh_cloud_project_network_private.network.id
+# Subnet 1: Ingress (for ingress controllers or load balancer)
+resource "ovh_cloud_project_network_private_subnet" "ingress" {
+  service_name = var.ovh_project_id
+  network_id   = ovh_cloud_project_network_private.vnet.id
+  region       = "GRA11"
+  start        = "192.168.10.10"
+  end          = "192.168.10.200"
+  network      = "192.168.10.0/24"
+  dhcp         = true
+  no_gateway   = false
+}
 
-#   # whatever region, for test purpose
-#   region     = "GRA11"
-#   start      = "192.168.168.100"
-#   end        = "192.168.168.200"
-#   network    = "192.168.168.0/24"
-#   dhcp       = true
-#   no_gateway = false
-# }
+# Subnet 2: App (Kubernetes nodes)
+resource "ovh_cloud_project_network_private_subnet" "app" {
+  service_name = var.ovh_project_id
+  network_id   = ovh_cloud_project_network_private.vnet.id
+  region       = "GRA11"
+  start        = "192.168.20.10"
+  end          = "192.168.20.200"
+  network      = "192.168.20.0/24"
+  dhcp         = true
+  no_gateway   = false
+}
+
+# Subnet 3: Data (PostgreSQL, etc.)
+resource "ovh_cloud_project_network_private_subnet" "data" {
+  service_name = var.ovh_project_id
+  network_id   = ovh_cloud_project_network_private.vnet.id
+  region       = "GRA11"
+  start        = "192.168.30.10"
+  end          = "192.168.30.200"
+  network      = "192.168.30.0/24"
+  dhcp         = true
+  no_gateway   = false
+}
 
 # Update Object Storage to supported resource
 resource "ovh_cloud_project_storage" "storage" {

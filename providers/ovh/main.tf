@@ -51,14 +51,6 @@ provider "ovh" {
 #   }
 # }
 
-data "ovh_cloud_project_region" "all" {
-  service_name = var.ovh_project_id
-}
-
-output "available_regions" {
-  value = data.ovh_cloud_project_region.all.regions
-}
-
 # Example: Create a Network (Private Network)
 resource "ovh_cloud_project_network_private" "vnet" {
   service_name = var.ovh_project_id
@@ -118,7 +110,7 @@ resource "ovh_cloud_project_gateway" "gateway" {
   model      = "s"
   region     = "GRA9"
   network_id = tolist(ovh_cloud_project_network_private.vnet.regions_attributes[*].openstackid)[0]
-  subnet_id  = ovh_cloud_project_network_private_subnet.subnet.id
+  subnet_id  = ovh_cloud_project_network_private_subnet.app.id
 }
 
 # Update Kubernetes Cluster resource and add node pool

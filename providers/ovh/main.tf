@@ -43,6 +43,7 @@ provider "ovh" {
 #   ovh_subsidiary = data.ovh_order_cart.mycart.ovh_subsidiary
 #   description    = "Landing Zone Project"
 
+# 6955a9f3a47143e8b9f4c94f6dd97742
 #   plan {
 #     duration     = data.ovh_order_cart_product_plan.cloud.selected_price[0].duration
 #     plan_code    = data.ovh_order_cart_product_plan.cloud.plan_code
@@ -50,18 +51,26 @@ provider "ovh" {
 #   }
 # }
 
+data "ovh_cloud_project_region" "all" {
+  service_name = var.ovh_project_id
+}
+
+output "available_regions" {
+  value = data.ovh_cloud_project_region.all.regions
+}
+
 # Example: Create a Network (Private Network)
 resource "ovh_cloud_project_network_private" "vnet" {
   service_name = var.ovh_project_id
   name         = "landing-zone-vnet"
-  regions      = ["GRA11"]
+  regions      = ["GRA9"]
 }
 
 # Subnet 1: Ingress (for ingress controllers or load balancer)
 resource "ovh_cloud_project_network_private_subnet" "ingress" {
   service_name = var.ovh_project_id
   network_id   = ovh_cloud_project_network_private.vnet.id
-  region       = "GRA11"
+  region       = "GRA9"
   start        = "192.168.10.10"
   end          = "192.168.10.200"
   network      = "192.168.10.0/24"
@@ -73,7 +82,7 @@ resource "ovh_cloud_project_network_private_subnet" "ingress" {
 resource "ovh_cloud_project_network_private_subnet" "app" {
   service_name = var.ovh_project_id
   network_id   = ovh_cloud_project_network_private.vnet.id
-  region       = "GRA11"
+  region       = "GRA9"
   start        = "192.168.20.10"
   end          = "192.168.20.200"
   network      = "192.168.20.0/24"
@@ -85,7 +94,7 @@ resource "ovh_cloud_project_network_private_subnet" "app" {
 resource "ovh_cloud_project_network_private_subnet" "data" {
   service_name = var.ovh_project_id
   network_id   = ovh_cloud_project_network_private.vnet.id
-  region       = "GRA11"
+  region       = "GRA9"
   start        = "192.168.30.10"
   end          = "192.168.30.200"
   network      = "192.168.30.0/24"
@@ -101,6 +110,15 @@ resource "ovh_cloud_project_storage" "storage" {
   versioning = {
     status = "enabled"
   }
+}
+
+resource "ovh_cloud_project_gateway" "gateway" {
+  service_name = var.ovh_project_id
+  name       = "gateway"
+  model      = "s"
+  region     = "GRA9"
+  network_id = tolist(ovh_cloud_project_network_private.vnet.regions_attributes[*].openstackid)[0]
+  subnet_id  = ovh_cloud_project_network_private_subnet.subnet.id
 }
 
 # Update Kubernetes Cluster resource and add node pool

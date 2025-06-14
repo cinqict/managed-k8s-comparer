@@ -2,8 +2,16 @@ import os
 import requests
 import time
 
+# Map Terraform provider endpoint to OVH API hostname
+ENDPOINT_MAP = {
+    "ovh-eu": "eu.api.ovh.com",
+    "ovh-ca": "ca.api.ovh.com",
+    "ovh-us": "us.api.ovh.com"
+}
+
 # Get OVH API credentials from environment variables
-ENDPOINT = os.environ["OVH_ENDPOINT"]
+RAW_ENDPOINT = os.environ.get("OVH_ENDPOINT", "eu.api.ovh.com")
+ENDPOINT = ENDPOINT_MAP.get(RAW_ENDPOINT, RAW_ENDPOINT)
 APP_KEY = os.environ["OVH_APPLICATION_KEY"]
 APP_SECRET = os.environ["OVH_APPLICATION_SECRET"]
 CONSUMER_KEY = os.environ["OVH_CONSUMER_KEY"]

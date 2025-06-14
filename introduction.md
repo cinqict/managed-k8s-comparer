@@ -21,4 +21,6 @@ To measure:
 - Infra change time and (hopefully no) downtime 
 - Cost
 
+Even though we want to remain European, free and opensource, there are significant hurdles in place to achieve this. Hence we will use GitHub and GitHub actions for now and Entra as an Identity provider.
+
 > **Note:** SSO and IAM onboarding experience will be covered in detail in a follow-up blog post, as these are critical for team adoption and security but differ significantly between providers.

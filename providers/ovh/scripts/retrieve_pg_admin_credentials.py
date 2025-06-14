@@ -16,12 +16,12 @@ ENDPOINT = ENDPOINT_MAP.get(RAW_ENDPOINT, RAW_ENDPOINT)
 APP_KEY = os.environ["OVH_APPLICATION_KEY"]
 APP_SECRET = os.environ["OVH_APPLICATION_SECRET"]
 CONSUMER_KEY = os.environ["OVH_CONSUMER_KEY"]
-PROJECT_ID = os.environ["OVH_PROJECT_ID"]
-SERVICE_NAME = os.environ["PGSQL_SERVICE_NAME"]  # e.g. "your-db-service-id"
+PROJECT_ID = "6955a9f3a47143e8b9f4c94f6dd97742" #os.environ["OVH_PROJECT_ID"]
+SERVICE_NAME = "5ac4575e-422a-4251-a2d8-3ea3a575ae47" #os.environ["PGSQL_SERVICE_NAME"] 
 
 print(f"[INFO] Using OVH API endpoint: {ENDPOINT}")
-print(f"[INFO] Using Project ID: {PROJECT_ID}")
-print(f"[INFO] Using Service name: {SERVICE_NAME}")
+print(f"[INFO] Using Project ID (unredacted): {PROJECT_ID}")
+print(f"[INFO] Using Service name (unredacted): {SERVICE_NAME}")
 
 headers = {
     "X-Ovh-Application": APP_KEY,

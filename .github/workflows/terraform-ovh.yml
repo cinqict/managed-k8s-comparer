@@ -49,16 +49,11 @@ jobs:
           duration=$((end - start))
           echo "Terraform apply duration: ${duration} seconds" > apply_duration.txt
 
-      - name: Output Terraform Results
-        run: |
-          terraform -chdir=providers/ovh output -json > ovh-outputs.json
-          cat ovh-outputs.json
-          cat apply_duration.txt
+      - name: Export kubeconfig
+        run: terraform -chdir=providers/ovh output -raw kubeconfig > kubeconfig.yaml
 
-      - name: Upload Outputs as Artifact
+      - name: Upload kubeconfig as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ovh-terraform-outputs
-          path: |
-            providers/ovh/ovh-outputs.json
-            apply_duration.txt
+          name: kubeconfig
+          path: kubeconfig.yaml

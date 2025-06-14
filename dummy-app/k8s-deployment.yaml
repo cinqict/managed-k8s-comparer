@@ -24,7 +24,10 @@ spec:
               name: pgsql-credentials
               key: host
         - name: DB_PORT
-          value: "5432"
+          valueFrom:
+            secretKeyRef:
+              name: pgsql-credentials
+              key: port
         - name: DB_USER
           valueFrom:
             secretKeyRef:

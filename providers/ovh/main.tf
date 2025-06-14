@@ -176,6 +176,12 @@ resource "ovh_cloud_project_database_database" "pgsqldb_database" {
   name        = "dummydb"
 }
 
+resource "ovh_cloud_project_database_postgresql_user" "dbuser" {
+  service_name = ovh_cloud_project_database.pgsqldb.service_name
+  cluster_id   = ovh_cloud_project_database.pgsqldb.id
+  name         = "dummyuser"
+}
+
 # Outputs
 output "kubeconfig" {
   value     = ovh_cloud_project_kube.cluster.kubeconfig
@@ -187,11 +193,24 @@ output "object_storage_name" {
 }
 
 output "pgsql_host" {
-  value = data.ovh_cloud_project_database.pgsqldb_data.host
+  value = data.ovh_cloud_project_database.pgsqldb_data.endpoints[0].domain
+}
+output "pgsql_port" {
+  value = data.ovh_cloud_project_database.pgsqldb_data.endpoints[0].port
+}
+output "pgsql_uri" {
+  value = data.ovh_cloud_project_database.pgsqldb_data.endpoints[0].uri
 }
 output "pgsql_dbname" {
   value = ovh_cloud_project_database_database.pgsqldb_database.name
 }
 output "pgsql_cluster_id" {
   value = ovh_cloud_project_database.pgsqldb.id
+}
+output "pgsql_user" {
+  value = ovh_cloud_project_database_postgresql_user.dbuser.name
+}
+output "pgsql_password" {
+  value     = ovh_cloud_project_database_postgresql_user.dbuser.password
+  sensitive = true
 }

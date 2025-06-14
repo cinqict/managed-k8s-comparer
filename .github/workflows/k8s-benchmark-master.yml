@@ -81,36 +81,12 @@ jobs:
         with:
           version: 'latest'
 
-      - name: Install OVH Python SDK
-        run: pip install ovh
-
-      - name: Fetch OVH PostgreSQL admin credentials
-        env:
-          OVH_ENDPOINT: $OVH_ENDPOINT
-          OVH_APPLICATION_KEY: $OVH_APPLICATION_KEY
-          OVH_APPLICATION_SECRET: $OVH_APPLICATION_SECRET
-          OVH_CONSUMER_KEY: $OVH_CONSUMER_KEY
-          OVH_PROJECT_ID: $OVH_PROJECT_ID
-          PGSQL_CLUSTER_ID: $(cat pgsql_cluster_id.txt)
-        run: |
-          python fetch_ovh_pgsql_admin.py > pgsql_admin.env
-          cat pgsql_admin.env
-
-      - name: Export DB credentials as environment variables
-        run: |
-          set -a
-          source pgsql_admin.env
-          set +a
-
       - name: Create pgsql-credentials Secret
         run: |
-          echo "$PGSQL_HOST" > pgsql_host.txt
-          echo "$PGSQL_USER" > pgsql_user.txt
-          echo "$PGSQL_PASSWORD" > pgsql_password.txt
-          echo "$PGSQL_DBNAME" > pgsql_dbname.txt
           kubectl --kubeconfig=kubeconfig.yaml delete secret pgsql-credentials || true
           kubectl --kubeconfig=kubeconfig.yaml create secret generic pgsql-credentials \
             --from-file=host=pgsql_host.txt \
+            --from-file=port=pgsql_port.txt \
             --from-file=user=pgsql_user.txt \
             --from-file=password=pgsql_password.txt \
             --from-file=dbname=pgsql_dbname.txt

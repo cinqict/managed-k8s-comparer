@@ -148,7 +148,7 @@ resource "ovh_cloud_project_database" "pgsqldb" {
   version       = "17"
   plan          = "essential"
   nodes {
-    region      = "EU-WEST-PAR"
+    region      = "GRA"
     network_id  = local.vnet_openstack_id
     subnet_id   = ovh_cloud_project_network_private_subnet.data.id
   }

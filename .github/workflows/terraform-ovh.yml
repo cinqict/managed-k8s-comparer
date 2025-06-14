@@ -59,8 +59,12 @@ jobs:
           name: kubeconfig
           path: kubeconfig.yaml
 
+      - name: Export pgsql_service_name to file
+        run: terraform -chdir=providers/ovh output -raw pgsql_cluster_id > pgsql_service_name.txt
+
       - name: Export admin DB credentials to files
         run: |
+          export PGSQL_SERVICE_NAME=$(cat pgsql_service_name.txt)
           python providers/ovh/scripts/retrieve_pg_admin_credentials.py
         env:
           OVH_ENDPOINT: ${{ secrets.OVH_ENDPOINT }}
@@ -68,7 +72,6 @@ jobs:
           OVH_APPLICATION_SECRET: ${{ secrets.OVH_APPLICATION_SECRET }}
           OVH_CONSUMER_KEY: ${{ secrets.OVH_CONSUMER_KEY }}
           OVH_PROJECT_ID: ${{ secrets.OVH_PROJECT_ID }}
-          PGSQL_SERVICE_NAME: ${{ secrets.OVH_PROJECT_ID }}
 
       - name: Export DB credentials to files
         run: |
@@ -90,4 +93,3 @@ jobs:
             pgsql_dbname.txt
             pgsql_admin_username.txt
             pgsql_admin_password.txt
-      

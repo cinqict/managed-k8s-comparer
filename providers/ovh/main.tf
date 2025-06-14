@@ -109,7 +109,7 @@ resource "ovh_cloud_project_gateway" "gateway" {
   name       = "gateway"
   model      = "s"
   region     = "GRA9"
-  network_id = tolist(ovh_cloud_project_network_private.vnet.regions_attributes[*].openstackid)[0]
+  network_id = local.vnet_openstack_id
   subnet_id  = ovh_cloud_project_network_private_subnet.app.id
 }
 
@@ -119,7 +119,7 @@ resource "ovh_cloud_project_kube" "cluster" {
   name         = "landing-zone-k8s"
   region       = "GRA9"
   version      = "1.31"
-  private_network_id = tolist(ovh_cloud_project_network_private.vnet.regions_attributes[*].openstackid)[0]
+  private_network_id = local.vnet_openstack_id
   nodes_subnet_id = ovh_cloud_project_network_private_subnet.app.id
   private_network_configuration {
       default_vrack_gateway              = ""
@@ -139,6 +139,28 @@ resource "ovh_cloud_project_kube_nodepool" "default" {
   max_nodes     = 3
   min_nodes     = 1
   autoscale     = true
+}
+
+resource "ovh_cloud_project_database" "pgsqldb" {
+  service_name  = var.ovh_project_id
+  description   = "my-first-postgresql"
+  engine        = "postgresql"
+  version       = "17"
+  plan          = "essential"
+  nodes {
+    region      = "EU-WEST-PAR"
+    network_id  = local.vnet_openstack_id
+    subnet_id   = ovh_cloud_project_network_private_subnet.data.id
+  }
+  flavor        = "db1-4"
+  ip_restrictions {
+    description = "ip 1"
+    ip = "178.97.6.0/24"
+  }
+  ip_restrictions {
+    description = "ip 2"
+    ip = "178.97.7.0/24"
+  }
 }
 
 # Outputs

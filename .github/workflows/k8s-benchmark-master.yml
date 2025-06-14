@@ -46,8 +46,54 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Dummy App Build
-        run: echo "App build/test would run here."
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and Push Dummy App Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./dummy-app
+          file: ./dummy-app/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/dummy-app:latest
+
+      - name: Download kubeconfig artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: kubeconfig
+          path: .
+
+      - name: Download DB credentials
+        uses: actions/download-artifact@v4
+        with:
+          name: pgsql-credentials
+          path: .
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+
+      - name: Create pgsql-credentials Secret
+        run: |
+          kubectl --kubeconfig=kubeconfig.yaml delete secret pgsql-credentials || true
+          kubectl --kubeconfig=kubeconfig.yaml create secret generic pgsql-credentials \
+            --from-file=host=pgsql_host.txt \
+            --from-file=user=pgsql_user.txt \
+            --from-file=password=pgsql_password.txt \
+            --from-file=dbname=pgsql_dbname.txt
+
+      - name: Deploy Dummy App via ArgoCD
+        run: |
+          sed 's#\${GITHUB_REPOSITORY}#${{ github.repository }}#g' ./dummy-app/argocd-app.yaml > ./dummy-app/argocd-app-patched.yaml
+          kubectl --kubeconfig=kubeconfig.yaml apply -f ./dummy-app/argocd-app-patched.yaml
 
   deploy:
     needs: app_ci

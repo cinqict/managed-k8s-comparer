@@ -172,3 +172,17 @@ output "kubeconfig" {
 output "object_storage_name" {
   value = ovh_cloud_project_storage.storage.name
 }
+
+output "pgsql_host" {
+  value = ovh_cloud_project_database.pgsqldb.host
+}
+output "pgsql_user" {
+  value = ovh_cloud_project_database.pgsqldb.user
+}
+output "pgsql_password" {
+  value = ovh_cloud_project_database.pgsqldb.password
+  sensitive = true
+}
+output "pgsql_dbname" {
+  value = ovh_cloud_project_database.pgsqldb.name
+}

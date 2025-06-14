@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: 'https://github.com/${GITHUB_REPOSITORY}'
+    repoURL: https://github.com/NSavenije/OVH
     targetRevision: HEAD
     path: dummy-app
   destination:

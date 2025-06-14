@@ -122,9 +122,9 @@ jobs:
             --from-file=password=pgsql_password.txt \
             --from-file=dbname=pgsql_dbname.txt
 
-      - name: Deploy Dummy App via ArgoCD
+      - name: Patch and Deploy Dummy App via ArgoCD
         run: |
-          sed 's#\${GITHUB_REPOSITORY}#${{ github.repository }}#g' ./dummy-app/argocd-app.yaml > ./dummy-app/argocd-app-patched.yaml
+          sed 's#https://github.com/${GITHUB_REPOSITORY}#https://github.com/${{ github.repository }}#g' ./dummy-app/argocd-app.yaml > ./dummy-app/argocd-app-patched.yaml
           kubectl --kubeconfig=kubeconfig.yaml apply -f ./dummy-app/argocd-app-patched.yaml
 
   deploy:

@@ -158,8 +158,8 @@ resource "ovh_cloud_project_database" "pgsqldb" {
     ip = "178.97.6.0/24"
   }
   ip_restrictions {
-    description = "ip 2"
-    ip = "178.97.7.0/24"
+    description = "cluster subnet"
+    ip = "192.168.20.0/24"
   }
 }
 

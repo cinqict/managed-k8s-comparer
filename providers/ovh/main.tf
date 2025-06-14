@@ -179,6 +179,7 @@ resource "ovh_cloud_project_database_database" "pgsqldb_database" {
 resource "ovh_cloud_project_database_postgresql_user" "dbuser" {
   service_name = ovh_cloud_project_database.pgsqldb.service_name
   cluster_id   = ovh_cloud_project_database.pgsqldb.id
+  roles        = ["replication"]
   name         = "dummyuser"
 }
 

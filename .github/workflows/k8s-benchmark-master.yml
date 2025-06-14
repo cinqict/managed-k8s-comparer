@@ -39,18 +39,37 @@ jobs:
           kubectl --kubeconfig=kubeconfig.yaml create namespace argocd || true
           kubectl --kubeconfig=kubeconfig.yaml apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
           kubectl --kubeconfig=kubeconfig.yaml -n argocd rollout status deployment/argocd-server --timeout=300s
-          
+
       - name: Install ArgoCD CLI
         run: |
           curl -sSL -o /usr/local/bin/argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
           chmod +x /usr/local/bin/argocd
 
+      - name: Port-forward ArgoCD API server
+        run: |
+          kubectl --kubeconfig=kubeconfig.yaml -n argocd port-forward svc/argocd-server 8080:443 &
+          echo $! > portforward.pid
+          sleep 10
+
+      - name: Login to ArgoCD
+        run: |
+          argocd login localhost:8080 --username admin --password $(kubectl --kubeconfig=kubeconfig.yaml -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d) --insecure
+          
       - name: Register GitHub repo with ArgoCD
         run: |
+          argocd repo list | grep "https://github.com/${{ github.repository }}" || \
           argocd repo add https://github.com/${{ github.repository }} \
             --username ${{ github.actor }} \
             --password ${{ secrets.PAT_GITHUB }} \
             --insecure
+
+      - name: Cleanup port-forward
+        if: always()
+        run: |
+          if [ -f portforward.pid ]; then
+            kill $(cat portforward.pid) || true
+            rm portforward.pid
+          fi
 
   app_ci:
     needs: argocd

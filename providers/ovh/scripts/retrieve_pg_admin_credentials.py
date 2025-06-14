@@ -20,13 +20,40 @@ PROJECT_ID = os.environ["OVH_PROJECT_ID"]
 SERVICE_NAME = os.environ["PGSQL_SERVICE_NAME"]  # e.g. "your-db-service-id"
 
 print(f"[INFO] Using OVH API endpoint: {ENDPOINT}")
+print(f"[INFO] Using Project ID: {PROJECT_ID}")
+print(f"[INFO] Using Service name: {SERVICE_NAME}")
 
-# 1. List users
-users_url = f"https://{ENDPOINT}/cloud/project/{PROJECT_ID}/database/postgresql/{SERVICE_NAME}/user"
 headers = {
     "X-Ovh-Application": APP_KEY,
     "X-Ovh-Consumer": CONSUMER_KEY,
 }
+
+# Wait for cluster to be ready before listing users
+cluster_url = f"https://{ENDPOINT}/cloud/project/{PROJECT_ID}/database/postgresql/{SERVICE_NAME}"
+print(f"[INFO] Checking cluster status at: {cluster_url}")
+for i in range(10):
+    cluster_resp = requests.get(cluster_url, headers=headers)
+    print(f"[DEBUG] cluster_resp.status_code: {cluster_resp.status_code}")
+    print(f"[DEBUG] cluster_resp.text: {cluster_resp.text}")
+    if cluster_resp.status_code == 200:
+        try:
+            cluster_info = cluster_resp.json()
+            if cluster_info.get("status") == "ready":
+                print("[INFO] Cluster is ready.")
+                break
+            else:
+                print(f"[INFO] Cluster status: {cluster_info.get('status')}, waiting...")
+        except Exception as e:
+            print(f"[ERROR] Could not parse cluster status JSON: {e}")
+    else:
+        print("[WARN] Cluster not found or not ready, retrying...")
+    time.sleep(3)
+else:
+    print("[ERROR] Cluster did not become ready in time.")
+    sys.exit(1)
+
+# 1. List users
+users_url = f"https://{ENDPOINT}/cloud/project/{PROJECT_ID}/database/postgresql/{SERVICE_NAME}/user"
 print(f"[INFO] Users URL: {users_url}")
 
 try:

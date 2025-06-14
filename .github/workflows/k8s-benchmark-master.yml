@@ -39,6 +39,18 @@ jobs:
           kubectl --kubeconfig=kubeconfig.yaml create namespace argocd || true
           kubectl --kubeconfig=kubeconfig.yaml apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
           kubectl --kubeconfig=kubeconfig.yaml -n argocd rollout status deployment/argocd-server --timeout=300s
+          
+      - name: Install ArgoCD CLI
+        run: |
+          curl -sSL -o /usr/local/bin/argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+          chmod +x /usr/local/bin/argocd
+
+      - name: Register GitHub repo with ArgoCD
+        run: |
+          argocd repo add https://github.com/${{ github.repository }} \
+            --username ${{ github.actor }} \
+            --password ${{ secrets.PAT_GITHUB }} \
+            --insecure
 
   app_ci:
     needs: argocd

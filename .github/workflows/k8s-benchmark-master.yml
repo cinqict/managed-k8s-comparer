@@ -130,13 +130,3 @@ jobs:
           kubectl --kubeconfig=kubeconfig.yaml -n argocd delete application dummy-app --ignore-not-found
           sleep 5
           kubectl --kubeconfig=kubeconfig.yaml apply -f ./dummy-app/argocd-app.yaml
-
-  deploy:
-    needs: app_ci
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      # You may need to retrieve kubeconfig here as well
-      - name: Dummy Deploy
-        run: echo "ArgoCD app bootstrap/sync would run here."

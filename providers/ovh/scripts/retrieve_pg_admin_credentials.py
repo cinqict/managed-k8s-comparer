@@ -1,6 +1,7 @@
 import os
 import requests
 import time
+import sys
 
 # Map Terraform provider endpoint to OVH API hostname
 ENDPOINT_MAP = {
@@ -18,14 +19,35 @@ CONSUMER_KEY = os.environ["OVH_CONSUMER_KEY"]
 PROJECT_ID = os.environ["OVH_PROJECT_ID"]
 SERVICE_NAME = os.environ["PGSQL_SERVICE_NAME"]  # e.g. "your-db-service-id"
 
+print(f"[INFO] Using OVH API endpoint: {ENDPOINT}")
+
 # 1. List users
 users_url = f"https://{ENDPOINT}/cloud/project/{PROJECT_ID}/database/postgresql/{SERVICE_NAME}/user"
 headers = {
     "X-Ovh-Application": APP_KEY,
     "X-Ovh-Consumer": CONSUMER_KEY,
 }
-users = requests.get(users_url, headers=headers).json()
-admin_user = [u for u in users if u == "admin"][0]
+print(f"[INFO] Users URL: {users_url}")
+
+try:
+    users_resp = requests.get(users_url, headers=headers)
+    print(f"[DEBUG] users_resp.status_code: {users_resp.status_code}")
+    print(f"[DEBUG] users_resp.text: {users_resp.text}")
+    users = users_resp.json()
+except Exception as e:
+    print(f"[ERROR] Failed to fetch users from OVH API: {e}")
+    print(f"[ERROR] Response content: {getattr(users_resp, 'text', None)}")
+    sys.exit(1)
+
+if not users or not isinstance(users, list):
+    print(f"[ERROR] No users found or unexpected response: {users}")
+    sys.exit(1)
+
+admin_user = [u for u in users if u == "admin"]
+if not admin_user:
+    print(f"[ERROR] No admin user found in users: {users}")
+    sys.exit(1)
+admin_user = admin_user[0]
 
 # 2. Reset password
 reset_url = f"https://{ENDPOINT}/cloud/project/{PROJECT_ID}/database/postgresql/{SERVICE_NAME}/user/{admin_user}/changePassword"

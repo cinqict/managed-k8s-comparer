@@ -59,10 +59,9 @@ jobs:
           name: kubeconfig
           path: kubeconfig.yaml
 
-      - name: Reset admin password and export
+      - name: Export admin DB credentials to files
         run: |
-          pip install requests
-          python providers/ovh/scripts/reset_admin_password.py
+          python providers/ovh/scripts/retrieve_pg_admin_credentials.py
         env:
           OVH_ENDPOINT: ${{ secrets.OVH_ENDPOINT }}
           OVH_APPLICATION_KEY: ${{ secrets.OVH_APPLICATION_KEY }}
@@ -70,10 +69,6 @@ jobs:
           OVH_CONSUMER_KEY: ${{ secrets.OVH_CONSUMER_KEY }}
           OVH_PROJECT_ID: ${{ secrets.OVH_PROJECT_ID }}
           PGSQL_SERVICE_NAME: ${{ secrets.OVH_PROJECT_ID }}
-
-      - name: Export admin DB credentials to files
-        run: |
-          python providers/ovh/scripts/retrieve_pg_admin_credentials.py
 
       - name: Export DB credentials to files
         run: |

@@ -43,6 +43,7 @@ provider "ovh" {
 #   ovh_subsidiary = data.ovh_order_cart.mycart.ovh_subsidiary
 #   description    = "Landing Zone Project"
 
+# 6955a9f3a47143e8b9f4c94f6dd97742
 #   plan {
 #     duration     = data.ovh_order_cart_product_plan.cloud.selected_price[0].duration
 #     plan_code    = data.ovh_order_cart_product_plan.cloud.plan_code
@@ -51,24 +52,47 @@ provider "ovh" {
 # }
 
 # Example: Create a Network (Private Network)
-# resource "ovh_cloud_project_network_private" "vnet" {
-#   service_name = var.ovh_project_id
-#   name         = "landing-zone-vnet"
-#   regions      = ["GRA11"]
-# }
+resource "ovh_cloud_project_network_private" "vnet" {
+  service_name = var.ovh_project_id
+  name         = "landing-zone-vnet"
+  regions      = ["GRA9"]
+}
 
-# resource "ovh_cloud_project_network_private_subnet" "subnet" {
-#   service_name = var.service_name
-#   network_id   = ovh_cloud_project_network_private.network.id
+# Subnet 1: Ingress (for ingress controllers or load balancer)
+resource "ovh_cloud_project_network_private_subnet" "ingress" {
+  service_name = var.ovh_project_id
+  network_id   = ovh_cloud_project_network_private.vnet.id
+  region       = "GRA9"
+  start        = "192.168.10.10"
+  end          = "192.168.10.200"
+  network      = "192.168.10.0/24"
+  dhcp         = true
+  no_gateway   = false
+}
 
-#   # whatever region, for test purpose
-#   region     = "GRA11"
-#   start      = "192.168.168.100"
-#   end        = "192.168.168.200"
-#   network    = "192.168.168.0/24"
-#   dhcp       = true
-#   no_gateway = false
-# }
+# Subnet 2: App (Kubernetes nodes)
+resource "ovh_cloud_project_network_private_subnet" "app" {
+  service_name = var.ovh_project_id
+  network_id   = ovh_cloud_project_network_private.vnet.id
+  region       = "GRA9"
+  start        = "192.168.20.10"
+  end          = "192.168.20.200"
+  network      = "192.168.20.0/24"
+  dhcp         = true
+  no_gateway   = false
+}
+
+# Subnet 3: Data (PostgreSQL, etc.)
+resource "ovh_cloud_project_network_private_subnet" "data" {
+  service_name = var.ovh_project_id
+  network_id   = ovh_cloud_project_network_private.vnet.id
+  region       = "GRA9"
+  start        = "192.168.30.10"
+  end          = "192.168.30.200"
+  network      = "192.168.30.0/24"
+  dhcp         = true
+  no_gateway   = false
+}
 
 # Update Object Storage to supported resource
 resource "ovh_cloud_project_storage" "storage" {
@@ -80,21 +104,30 @@ resource "ovh_cloud_project_storage" "storage" {
   }
 }
 
+resource "ovh_cloud_project_gateway" "gateway" {
+  service_name = var.ovh_project_id
+  name       = "gateway"
+  model      = "s"
+  region     = "GRA9"
+  network_id = local.vnet_openstack_id
+  subnet_id  = ovh_cloud_project_network_private_subnet.app.id
+}
+
 # Update Kubernetes Cluster resource and add node pool
 resource "ovh_cloud_project_kube" "cluster" {
   service_name = var.ovh_project_id
   name         = "landing-zone-k8s"
   region       = "GRA9"
   version      = "1.31"
-  # private_network_id = tolist(ovh_cloud_project_network_private.vnet.regions_attributes[*].openstackid)[0]
-  # nodes_subnet_id = ovh_cloud_project_network_private_subnet.subnet.id
-  # private_network_configuration {
-  #     default_vrack_gateway              = ""
-  #     private_network_routing_as_default = false
-  # }
-  # depends_on = [
-  #   ovh_cloud_project_network_private.vnet
-  # ] 
+  private_network_id = local.vnet_openstack_id
+  nodes_subnet_id = ovh_cloud_project_network_private_subnet.app.id
+  private_network_configuration {
+      default_vrack_gateway              = ""
+      private_network_routing_as_default = false
+  }
+  depends_on = [
+    ovh_cloud_project_network_private_subnet.app
+  ] 
 }
 
 resource "ovh_cloud_project_kube_nodepool" "default" {
@@ -106,6 +139,28 @@ resource "ovh_cloud_project_kube_nodepool" "default" {
   max_nodes     = 3
   min_nodes     = 1
   autoscale     = true
+}
+
+resource "ovh_cloud_project_database" "pgsqldb" {
+  service_name  = var.ovh_project_id
+  description   = "my-first-postgresql"
+  engine        = "postgresql"
+  version       = "17"
+  plan          = "essential"
+  nodes {
+    region      = "GRA"
+    network_id  = local.vnet_openstack_id
+    subnet_id   = ovh_cloud_project_network_private_subnet.data.id
+  }
+  flavor        = "db1-4"
+  ip_restrictions {
+    description = "ip 1"
+    ip = "178.97.6.0/24"
+  }
+  ip_restrictions {
+    description = "ip 2"
+    ip = "178.97.7.0/24"
+  }
 }
 
 # Outputs

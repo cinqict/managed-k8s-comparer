@@ -1,0 +1,60 @@
+# This workflow orchestrates the full test suite: infra provisioning, ArgoCD install, app CI, and deployment.
+name: 'K8s Benchmark Master Flow'
+
+on:
+  workflow_dispatch:
+
+jobs:
+  infra:
+    uses: ./.github/workflows/terraform-ovh.yml
+    secrets: inherit
+
+  argocd:
+    needs: infra
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download kubeconfig artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: kubeconfig
+          path: .
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+
+      - name: Wait for Kubernetes API (Linux)
+        run: |
+          for i in {1..30}; do
+            kubectl --kubeconfig=kubeconfig.yaml get nodes && exit 0 || sleep 20
+          done
+          echo "Cluster did not become ready in time." && exit 1
+
+      - name: Install ArgoCD
+        run: |
+          kubectl --kubeconfig=kubeconfig.yaml create namespace argocd || true
+          kubectl --kubeconfig=kubeconfig.yaml apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+          kubectl --kubeconfig=kubeconfig.yaml -n argocd rollout status deployment/argocd-server --timeout=300s
+
+  app_ci:
+    needs: argocd
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Dummy App Build
+        run: echo "App build/test would run here."
+
+  deploy:
+    needs: app_ci
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      # You may need to retrieve kubeconfig here as well
+      - name: Dummy Deploy
+        run: echo "ArgoCD app bootstrap/sync would run here."

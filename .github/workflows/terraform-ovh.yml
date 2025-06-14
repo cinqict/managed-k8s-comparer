@@ -42,7 +42,7 @@ jobs:
         run: terraform -chdir=providers/ovh plan
 
       - name: Terraform Apply
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
         run: |
           start=$(date +%s)
           terraform -chdir=providers/ovh apply -auto-approve

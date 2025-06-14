@@ -58,3 +58,22 @@ jobs:
         with:
           name: kubeconfig
           path: kubeconfig.yaml
+
+      - name: Export DB credentials to files
+        run: |
+          terraform -chdir=providers/ovh output -raw pgsql_host > pgsql_host.txt
+          terraform -chdir=providers/ovh output -raw pgsql_port > pgsql_port.txt
+          terraform -chdir=providers/ovh output -raw pgsql_user > pgsql_user.txt
+          terraform -chdir=providers/ovh output -raw pgsql_password > pgsql_password.txt
+          terraform -chdir=providers/ovh output -raw pgsql_dbname > pgsql_dbname.txt
+
+      - name: Upload DB credentials as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pgsql-credentials
+          path: |
+            pgsql_host.txt
+            pgsql_port.txt
+            pgsql_user.txt
+            pgsql_password.txt
+            pgsql_dbname.txt

@@ -9,10 +9,6 @@ terraform {
       source  = "ovh/ovh"
       version = ">= 0.44.0"
     }
-    random = {
-      source  = "hashicorp/random"
-      version = ">= 3.0.0"
-    }
   }
   backend "azurerm" {
     resource_group_name  = "rg-noudsavenije-devops"
@@ -180,21 +176,6 @@ resource "ovh_cloud_project_database_database" "pgsqldb_database" {
   name        = "dummydb"
 }
 
-resource "ovh_cloud_project_database_user" "pgsqldb_user" {
-  service_name = var.ovh_project_id
-  engine      = data.ovh_cloud_project_database.pgsqldb_data.engine
-  cluster_id  = data.ovh_cloud_project_database.pgsqldb_data.id
-  name        = "dummyuser"
-  password    = random_password.pgsql_password.result
-  roles       = ["readwrite"]
-  database_name = ovh_cloud_project_database_database.pgsqldb_database.name
-}
-
-resource "random_password" "pgsql_password" {
-  length  = 16
-  special = true
-}
-
 # Outputs
 output "kubeconfig" {
   value     = ovh_cloud_project_kube.cluster.kubeconfig
@@ -206,15 +187,11 @@ output "object_storage_name" {
 }
 
 output "pgsql_host" {
-  value = data.ovh_cloud_project_database.pgsqldb_data.hostname
-}
-output "pgsql_user" {
-  value = ovh_cloud_project_database_user.pgsqldb_user.user_name
-}
-output "pgsql_password" {
-  value     = random_password.pgsql_password.result
-  sensitive = true
+  value = data.ovh_cloud_project_database.pgsqldb_data.host
 }
 output "pgsql_dbname" {
   value = ovh_cloud_project_database_database.pgsqldb_database.name
+}
+output "pgsql_cluster_id" {
+  value = ovh_cloud_project_database.pgsqldb.id
 }

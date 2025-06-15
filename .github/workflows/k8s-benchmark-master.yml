@@ -130,3 +130,10 @@ jobs:
           kubectl --kubeconfig=kubeconfig.yaml -n argocd delete application dummy-app --ignore-not-found
           sleep 5
           kubectl --kubeconfig=kubeconfig.yaml apply -f ./dummy-app/argocd-app.yaml
+
+      - name: Install k6
+        run: sudo apt-get update && sudo apt-get install -y k6
+
+      - name: Run k6 load test
+        run: k6 run k6-loadtest.js
+        working-directory: ${{ github.workspace }}

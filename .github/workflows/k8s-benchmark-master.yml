@@ -140,11 +140,19 @@ jobs:
 
       - name: Install k6
         run: |
-          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
-          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
-          sudo apt-get update
-          sudo apt-get install -y k6
+          K6_VERSION=$(curl -s https://api.github.com/repos/grafana/k6/releases/latest | grep tag_name | cut -d '"' -f 4 | sed 's/v//')
+          curl -L "https://github.com/grafana/k6/releases/download/v${K6_VERSION}/k6-v${K6_VERSION}-linux-amd64.tar.gz" -o k6.tar.gz
+          tar -xzf k6.tar.gz
+          sudo mv k6-*-linux-amd64/k6 /usr/local/bin/
+          k6 version
 
       - name: Run k6 load test
-        run: k6 run common/loadtest.js
+        run: |
+          k6 run --out json=loadtest-result.json common/loadtest.js
         working-directory: ${{ github.workspace }}
+
+      - name: Upload k6 load test result
+        uses: actions/upload-artifact@v4
+        with:
+          name: k6-loadtest-result
+          path: loadtest-result.json

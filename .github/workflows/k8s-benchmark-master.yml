@@ -139,7 +139,9 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install k6
-        run: sudo apt-get update && sudo apt-get install -y k6
+        run: |
+          curl -s https://api.k6.io/downloads/k6-latest-linux-amd64.tar.gz | tar xz
+          sudo mv k6-latest-linux-amd64/k6 /usr/local/bin/
 
       - name: Run k6 load test
         run: k6 run common/loadtest.js

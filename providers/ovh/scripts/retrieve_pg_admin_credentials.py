@@ -16,9 +16,9 @@ print(f"[INFO] Using Service name (unredacted): {SERVICE_NAME}")
 # 1. Get Admin user
 client = ovh.Client(
 	endpoint='ovh-eu',           
-	application_key={APP_KEY},    
-	application_secret={APP_SECRET}, 
-	consumer_key={CONSUMER_KEY}
+	application_key=APP_KEY,    
+	application_secret=APP_SECRET, 
+	consumer_key=CONSUMER_KEY
 )
 
 try:

@@ -51,7 +51,7 @@ if not new_password:
     print("[WARN] Password is empty in the response!")
 print(f"username: {admin_username}")
 print(f"password: {new_password}")
-with open("pgsql_admin_password.txt", "w") as f:
+with open("pgsql_password.txt", "w") as f:
     f.write(new_password)
-with open("pgsql_admin_username.txt", "w") as f:
+with open("pgsql_username.txt", "w") as f:
     f.write(admin_username)

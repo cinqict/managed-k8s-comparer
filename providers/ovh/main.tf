@@ -176,13 +176,6 @@ resource "ovh_cloud_project_database_database" "pgsqldb_database" {
   name        = "dummydb"
 }
 
-resource "ovh_cloud_project_database_postgresql_user" "dbuser" {
-  service_name = ovh_cloud_project_database.pgsqldb.service_name
-  cluster_id   = ovh_cloud_project_database.pgsqldb.id
-  roles        = ["replication"]
-  name         = "dummyuser"
-}
-
 # Outputs
 output "kubeconfig" {
   value     = ovh_cloud_project_kube.cluster.kubeconfig
@@ -207,11 +200,4 @@ output "pgsql_dbname" {
 }
 output "pgsql_cluster_id" {
   value = ovh_cloud_project_database.pgsqldb.id
-}
-output "pgsql_user" {
-  value = ovh_cloud_project_database_postgresql_user.dbuser.name
-}
-output "pgsql_password" {
-  value     = ovh_cloud_project_database_postgresql_user.dbuser.password
-  sensitive = true
 }

@@ -121,8 +121,8 @@ jobs:
           kubectl --kubeconfig=kubeconfig.yaml create secret generic pgsql-credentials \
             --from-file=host=pgsql_host.txt \
             --from-file=port=pgsql_port.txt \
-            --from-file=user=pgsql_admin_username.txt \
-            --from-file=password=pgsql_admin_password.txt \
+            --from-file=user=pgsql_username.txt \
+            --from-file=password=pgsql_password.txt \
             --from-file=dbname=pgsql_dbname.txt
 
       - name: Deploy Dummy App via ArgoCD

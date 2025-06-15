@@ -80,8 +80,6 @@ jobs:
         run: |
           terraform -chdir=providers/ovh output -raw pgsql_host > pgsql_host.txt
           terraform -chdir=providers/ovh output -raw pgsql_port > pgsql_port.txt
-          terraform -chdir=providers/ovh output -raw pgsql_user > pgsql_user.txt
-          terraform -chdir=providers/ovh output -raw pgsql_password > pgsql_password.txt
           terraform -chdir=providers/ovh output -raw pgsql_dbname > pgsql_dbname.txt
 
       - name: Upload DB credentials as artifact
@@ -91,8 +89,6 @@ jobs:
           path: |
             pgsql_host.txt
             pgsql_port.txt
-            pgsql_user.txt
+            pgsql_username.txt
             pgsql_password.txt
             pgsql_dbname.txt
-            pgsql_admin_username.txt
-            pgsql_admin_password.txt

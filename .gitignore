@@ -25,3 +25,7 @@ Thumbs.db
 
 # Output artifacts
 ovh-outputs.json
+ovh.conf
+
+# Python virtual environments
+.venv/

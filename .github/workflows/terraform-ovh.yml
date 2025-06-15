@@ -62,6 +62,9 @@ jobs:
       - name: Export pgsql_service_name to file
         run: terraform -chdir=providers/ovh output -raw pgsql_cluster_id > pgsql_service_name.txt
 
+      - name: Install OVH Python SDK
+        run: pip install ovh
+
       - name: Export admin DB credentials to files
         run: |
           export PGSQL_SERVICE_NAME=$(cat pgsql_service_name.txt)

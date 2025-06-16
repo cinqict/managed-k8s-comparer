@@ -131,6 +131,10 @@ jobs:
           sleep 5
           kubectl --kubeconfig=kubeconfig.yaml apply -f ./dummy-app/argocd-app.yaml
 
+      - name: Restart Dummy App Deployment
+        run: |
+          kubectl --kubeconfig=kubeconfig.yaml -n default rollout restart deployment dummy-app
+
   loadtest:
     needs: app_ci
     runs-on: ubuntu-latest

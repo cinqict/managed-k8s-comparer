@@ -6,6 +6,8 @@ from datetime import datetime
 from contextlib import asynccontextmanager
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+import hashlib
+import secrets
 
 app = FastAPI()
 
@@ -66,3 +68,22 @@ async def read_messages():
         return [{"id": r["id"], "content": r["content"], "created_at": r["created_at"].isoformat()} for r in rows]
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/compute")
+async def compute_hash(iterations: int = 100000):
+    "Perform a CPU-intensive hash computation to generate load and store the result in the database."
+    data = secrets.token_bytes(256)
+    result = data
+    for _ in range(iterations):
+        result = hashlib.sha256(result).digest()
+    hash_hex = result.hex()
+    # Store the hash result in the database
+    try:
+        async with app.state.pool.acquire() as conn:
+            await conn.execute(
+                "INSERT INTO messages (content, created_at) VALUES ($1, $2)",
+                f"hash:{hash_hex}", datetime.utcnow()
+            )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Hash computed but DB insert failed: {str(e)}")
+    return {"hash": hash_hex, "iterations": iterations}

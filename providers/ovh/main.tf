@@ -109,7 +109,7 @@ resource "ovh_cloud_project_kube_nodepool" "default" {
   kube_id      = ovh_cloud_project_kube.cluster.id
   name         = "default"
   flavor_name  = "b3-8"
-  desired_nodes = 2
+  desired_nodes = 1
   max_nodes     = 3
   min_nodes     = 1
   autoscale     = true

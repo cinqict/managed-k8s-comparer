@@ -21,7 +21,12 @@ jobs:
     uses: ./.github/workflows/app-ci-template.yml
     secrets: inherit
 
-  loadtest:
+  locust:
     needs: app_ci
-    uses: ./.github/workflows/loadtest-template.yml
+    uses: ./.github/workflows/locust-template.yml
     secrets: inherit
+
+  # loadtest:
+  #   needs: app_ci
+  #   uses: ./.github/workflows/loadtest-template.yml
+  #   secrets: inherit

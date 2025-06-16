@@ -167,18 +167,6 @@ jobs:
             exit 1
           fi
 
-      - name: Upload Dummy App External IP
-        uses: actions/upload-artifact@v4
-        with:
-          name: dummy-app-external-ip
-          path: dummy_app_external_ip.txt          
-
-      - name: Download Dummy App External IP
-        uses: actions/download-artifact@v4
-        with:
-          name: dummy-app-external-ip
-          path: .
-
       - name: Run k6 load test
         run: |
           export DUMMY_APP_IP=$(cat dummy_app_external_ip.txt)

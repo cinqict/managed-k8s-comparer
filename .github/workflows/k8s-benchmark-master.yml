@@ -170,7 +170,7 @@ jobs:
       - name: Run k6 load test
         run: |
           export DUMMY_APP_IP=$(cat dummy_app_external_ip.txt)
-          k6 run --out json=loadtest-result.json common/loadtest.js --address http://$DUMMY_APP_IP
+          k6 run --out json=loadtest-result.json common/loadtest.js
         env:
           DUMMY_APP_IP: ${{ env.DUMMY_APP_IP }}
 

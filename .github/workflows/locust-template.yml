@@ -36,9 +36,11 @@ jobs:
             --set loadtest.locust_locustfile_configmap=my-loadtest-locustfile
       - name: Wait for Locust GUI to be ready
         run: |
-          for i in 1..30 {
-            $svc = kubectl get svc locust-master -o json | ConvertFrom-Json
-            $ip = $svc.status.loadBalancer.ingress[0].ip
-            if ($ip) { Write-Host "Locust GUI available at http://$ip:8089"; break }
-            Start-Sleep -Seconds 10
-          }
+          for i in {1..30}; do
+            ip=$(kubectl get svc locust-master -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+            if [ -n "$ip" ]; then
+              echo "Locust GUI available at http://$ip:8089"
+              break
+            fi
+            sleep 10
+          done

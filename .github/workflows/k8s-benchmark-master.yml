@@ -146,6 +146,12 @@ jobs:
           sudo mv k6-*-linux-amd64/k6 /usr/local/bin/
           k6 version
 
+      - name: Download kubeconfig artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: kubeconfig
+          path: .
+
       - name: Get Dummy App External IP
         run: |
           for i in {1..30}; do

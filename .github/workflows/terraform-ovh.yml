@@ -4,10 +4,6 @@ name: 'Terraform OVH Landing Zone'
 on:
   workflow_call:
   workflow_dispatch:
-  # push:
-  #   paths:
-  #     - 'providers/ovh/**'
-  #     - '.github/workflows/terraform-ovh.yml'
 
 jobs:
   terraform:

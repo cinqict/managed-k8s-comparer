@@ -1,0 +1,51 @@
+name: 'K6 Loadtest'
+on:
+  workflow_call:
+jobs:
+  loadtest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install k6
+        run: |
+          K6_VERSION=$(curl -s https://api.github.com/repos/grafana/k6/releases/latest | grep tag_name | cut -d '"' -f 4 | sed 's/v//')
+          curl -L "https://github.com/grafana/k6/releases/download/v${K6_VERSION}/k6-v${K6_VERSION}-linux-amd64.tar.gz" -o k6.tar.gz
+          tar -xzf k6.tar.gz
+          sudo mv k6-*-linux-amd64/k6 /usr/local/bin/
+          k6 version
+
+      - name: Download kubeconfig artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: kubeconfig
+          path: .
+
+      - name: Get Dummy App External IP
+        run: |
+          for i in {1..30}; do
+            EXTERNAL_IP=$(kubectl --kubeconfig=kubeconfig.yaml get svc dummy-app -o jsonpath="{.status.loadBalancer.ingress[0].ip}")
+            if [ -n "$EXTERNAL_IP" ]; then
+              echo "$EXTERNAL_IP" > dummy_app_external_ip.txt
+              break
+            fi
+            sleep 10
+          done
+          if [ ! -s dummy_app_external_ip.txt ]; then
+            echo "External IP not found!" >&2
+            exit 1
+          fi
+
+      - name: Run k6 load test
+        run: |
+          export DUMMY_APP_IP=$(cat dummy_app_external_ip.txt)
+          k6 run --out json=loadtest-result.json common/loadtest.js
+        env:
+          DUMMY_APP_IP: ${{ env.DUMMY_APP_IP }}
+
+      - name: Upload k6 load test result
+        uses: actions/upload-artifact@v4
+        with:
+          name: k6-loadtest-result
+          path: loadtest-result.json

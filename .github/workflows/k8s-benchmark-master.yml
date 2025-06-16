@@ -1,4 +1,3 @@
-# This workflow orchestrates the full test suite: infra provisioning, ArgoCD install, app CI, and deployment.
 name: 'K8s Benchmark Master Flow'
 
 on:
@@ -14,172 +13,15 @@ jobs:
 
   argocd:
     needs: infra
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Download kubeconfig artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: kubeconfig
-          path: .
-
-      - name: Set up kubectl
-        uses: azure/setup-kubectl@v3
-        with:
-          version: 'latest'
-
-      - name: Wait for Kubernetes API (Linux)
-        run: |
-          for i in {1..30}; do
-            kubectl --kubeconfig=kubeconfig.yaml get nodes && exit 0 || sleep 20
-          done
-          echo "Cluster did not become ready in time." && exit 1
-
-      - name: Install ArgoCD
-        run: |
-          kubectl --kubeconfig=kubeconfig.yaml create namespace argocd || true
-          kubectl --kubeconfig=kubeconfig.yaml apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
-          kubectl --kubeconfig=kubeconfig.yaml -n argocd rollout status deployment/argocd-server --timeout=300s
-
-      - name: Install ArgoCD CLI
-        run: |
-          curl -sSL -o /usr/local/bin/argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
-          chmod +x /usr/local/bin/argocd
-
-      - name: Port-forward ArgoCD API server
-        run: |
-          kubectl --kubeconfig=kubeconfig.yaml -n argocd port-forward svc/argocd-server 8080:443 &
-          echo $! > portforward.pid
-          sleep 10
-
-      - name: Login to ArgoCD
-        run: |
-          argocd login localhost:8080 --username admin --password $(kubectl --kubeconfig=kubeconfig.yaml -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d) --insecure
-          
-      - name: Register GitHub repo with ArgoCD
-        run: |
-          argocd repo list | grep "https://github.com/${{ github.repository }}" || \
-          argocd repo add https://github.com/${{ github.repository }} \
-            --username ${{ github.actor }} \
-            --password ${{ secrets.PAT_GITHUB }} \
-            --insecure
-
-      - name: Cleanup port-forward
-        if: always()
-        run: |
-          if [ -f portforward.pid ]; then
-            kill $(cat portforward.pid) || true
-            rm portforward.pid
-          fi
-
+    uses: ./.github/workflows/argocd-template.yml
+    secrets: inherit
+  
   app_ci:
     needs: argocd
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to DockerHub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Build and Push Dummy App Image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./dummy-app
-          file: ./dummy-app/Dockerfile
-          push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/dummy-app:latest
-
-      - name: Download kubeconfig artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: kubeconfig
-          path: .
-
-      - name: Download DB credentials
-        uses: actions/download-artifact@v4
-        with:
-          name: pgsql-credentials
-          path: .
-
-      - name: Set up kubectl
-        uses: azure/setup-kubectl@v3
-        with:
-          version: 'latest'
-
-      - name: Create pgsql-credentials Secret
-        run: |
-          kubectl --kubeconfig=kubeconfig.yaml delete secret pgsql-credentials || true
-          kubectl --kubeconfig=kubeconfig.yaml create secret generic pgsql-credentials \
-            --from-file=host=pgsql_host.txt \
-            --from-file=port=pgsql_port.txt \
-            --from-file=user=pgsql_username.txt \
-            --from-file=password=pgsql_password.txt \
-            --from-file=dbname=pgsql_dbname.txt
-
-      - name: Deploy Dummy App via ArgoCD
-        run: |
-          kubectl --kubeconfig=kubeconfig.yaml -n argocd delete application dummy-app --ignore-not-found
-          sleep 5
-          kubectl --kubeconfig=kubeconfig.yaml apply -f ./dummy-app/argocd-app.yaml
-
-      - name: Restart Dummy App Deployment
-        run: |
-          kubectl --kubeconfig=kubeconfig.yaml -n default rollout restart deployment dummy-app
+    uses: ./.github/workflows/app-ci-template.yml
+    secrets: inherit
 
   loadtest:
     needs: app_ci
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Install k6
-        run: |
-          K6_VERSION=$(curl -s https://api.github.com/repos/grafana/k6/releases/latest | grep tag_name | cut -d '"' -f 4 | sed 's/v//')
-          curl -L "https://github.com/grafana/k6/releases/download/v${K6_VERSION}/k6-v${K6_VERSION}-linux-amd64.tar.gz" -o k6.tar.gz
-          tar -xzf k6.tar.gz
-          sudo mv k6-*-linux-amd64/k6 /usr/local/bin/
-          k6 version
-
-      - name: Download kubeconfig artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: kubeconfig
-          path: .
-
-      - name: Get Dummy App External IP
-        run: |
-          for i in {1..30}; do
-            EXTERNAL_IP=$(kubectl --kubeconfig=kubeconfig.yaml get svc dummy-app -o jsonpath="{.status.loadBalancer.ingress[0].ip}")
-            if [ -n "$EXTERNAL_IP" ]; then
-              echo "$EXTERNAL_IP" > dummy_app_external_ip.txt
-              break
-            fi
-            sleep 10
-          done
-          if [ ! -s dummy_app_external_ip.txt ]; then
-            echo "External IP not found!" >&2
-            exit 1
-          fi
-
-      - name: Run k6 load test
-        run: |
-          export DUMMY_APP_IP=$(cat dummy_app_external_ip.txt)
-          k6 run --out json=loadtest-result.json common/loadtest.js
-        env:
-          DUMMY_APP_IP: ${{ env.DUMMY_APP_IP }}
-
-      - name: Upload k6 load test result
-        uses: actions/upload-artifact@v4
-        with:
-          name: k6-loadtest-result
-          path: loadtest-result.json
+    uses: ./.github/workflows/loadtest-template.yml
+    secrets: inherit

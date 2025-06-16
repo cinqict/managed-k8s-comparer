@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dummy App Demo</title>
+  <style>
+    body { font-family: sans-serif; margin: 2em; }
+    #messages { margin-top: 2em; }
+    .msg { border-bottom: 1px solid #eee; padding: 0.5em 0; }
+  </style>
+</head>
+<body>
+  <h1>Dummy App Demo 🚀</h1>
+  <form id="msgForm">
+    <input type="text" id="msgInput" placeholder="Type a message..." required>
+    <button type="submit">Send</button>
+  </form>
+  <div id="messages"></div>
+  <script>
+    async function fetchMessages() {
+      const res = await fetch('/read');
+      const data = await res.json();
+      const msgs = data.map(m => `<div class="msg"><b>${m.id}</b>: ${m.content} <small>${m.created_at}</small></div>`).join('');
+      document.getElementById('messages').innerHTML = msgs;
+    }
+    document.getElementById('msgForm').onsubmit = async (e) => {
+      e.preventDefault();
+      const content = document.getElementById('msgInput').value;
+      await fetch('/write', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({content})
+      });
+      document.getElementById('msgInput').value = '';
+      fetchMessages();
+    };
+    fetchMessages();
+    setInterval(fetchMessages, 3000);
+  </script>
+</body>
+</html>

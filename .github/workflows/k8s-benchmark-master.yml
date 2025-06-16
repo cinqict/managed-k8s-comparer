@@ -146,13 +146,42 @@ jobs:
           sudo mv k6-*-linux-amd64/k6 /usr/local/bin/
           k6 version
 
-    #   - name: Run k6 load test
-    #     run: |
-    #       k6 run --out json=loadtest-result.json common/loadtest.js
-    #     working-directory: ${{ github.workspace }}
+      - name: Get Dummy App External IP
+        run: |
+          for i in {1..30}; do
+            EXTERNAL_IP=$(kubectl --kubeconfig=kubeconfig.yaml get svc dummy-app -o jsonpath="{.status.loadBalancer.ingress[0].ip}")
+            if [ -n "$EXTERNAL_IP" ]; then
+              echo "$EXTERNAL_IP" > dummy_app_external_ip.txt
+              break
+            fi
+            sleep 10
+          done
+          if [ ! -s dummy_app_external_ip.txt ]; then
+            echo "External IP not found!" >&2
+            exit 1
+          fi
 
-    #   - name: Upload k6 load test result
-    #     uses: actions/upload-artifact@v4
-    #     with:
-    #       name: k6-loadtest-result
-    #       path: loadtest-result.json
+      - name: Upload Dummy App External IP
+        uses: actions/upload-artifact@v4
+        with:
+          name: dummy-app-external-ip
+          path: dummy_app_external_ip.txt          
+
+      - name: Download Dummy App External IP
+        uses: actions/download-artifact@v4
+        with:
+          name: dummy-app-external-ip
+          path: .
+
+      - name: Run k6 load test
+        run: |
+          export DUMMY_APP_IP=$(cat dummy_app_external_ip.txt)
+          k6 run --out json=loadtest-result.json common/loadtest.js --address http://$DUMMY_APP_IP
+        env:
+          DUMMY_APP_IP: ${{ env.DUMMY_APP_IP }}
+
+      - name: Upload k6 load test result
+        uses: actions/upload-artifact@v4
+        with:
+          name: k6-loadtest-result
+          path: loadtest-result.json

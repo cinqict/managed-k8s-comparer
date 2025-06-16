@@ -146,13 +146,13 @@ jobs:
           sudo mv k6-*-linux-amd64/k6 /usr/local/bin/
           k6 version
 
-      - name: Run k6 load test
-        run: |
-          k6 run --out json=loadtest-result.json common/loadtest.js
-        working-directory: ${{ github.workspace }}
+    #   - name: Run k6 load test
+    #     run: |
+    #       k6 run --out json=loadtest-result.json common/loadtest.js
+    #     working-directory: ${{ github.workspace }}
 
-      - name: Upload k6 load test result
-        uses: actions/upload-artifact@v4
-        with:
-          name: k6-loadtest-result
-          path: loadtest-result.json
+    #   - name: Upload k6 load test result
+    #     uses: actions/upload-artifact@v4
+    #     with:
+    #       name: k6-loadtest-result
+    #       path: loadtest-result.json

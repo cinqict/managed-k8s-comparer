@@ -29,8 +29,8 @@ jobs:
         run: |
           helm upgrade --install locust oci://ghcr.io/deliveryhero/helm-charts/locust \
             --version 0.32.6 \
-            --set master.webUIService.type=LoadBalancer \
-            --set master.webUIService.port=8089 \
+            --set service.type=LoadBalancer \
+            --set service.port=8089 \
             --set worker.replicas=2 \
             --set loadtest.name=my-loadtest \
             --set loadtest.locust_locustfile_configmap=my-loadtest-locustfile

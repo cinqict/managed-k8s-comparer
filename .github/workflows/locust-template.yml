@@ -7,14 +7,21 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+      - name: Download kubeconfig artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: kubeconfig
+          path: .
+      - name: Set KUBECONFIG env var
+        run: echo "KUBECONFIG=$GITHUB_WORKSPACE/kubeconfig.yaml" >> $GITHUB_ENV
       - name: Set up kubectl
         uses: azure/setup-kubectl@v3
         with:
           version: 'latest'
       - name: Add Locust Helm repo
         run: |
-          helm repo add locust 'https://raw.githubusercontent.com/hansehe/locust/master/helm/charts'
-          helm install locust locust/locust --version 0.1.0
+          helm repo add locustio https://locustio.github.io/helm-charts/
+          helm repo update
       - name: Create Locustfile ConfigMap
         run: |
           kubectl create configmap locustfile --from-file=dummy-app/locustfile.py --dry-run=client -o yaml | kubectl apply -f -

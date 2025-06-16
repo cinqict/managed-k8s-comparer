@@ -24,7 +24,7 @@ jobs:
           helm repo update
       - name: Create Locustfile ConfigMap
         run: |
-          kubectl create configmap my-loadtest-locustfile --from-file=dummy-app/locustfile.py --dry-run=client -o yaml | kubectl apply -f -
+          kubectl create configmap my-loadtest-locustfile --from-file=main.py=dummy-app/locustfile.py --dry-run=client -o yaml | kubectl apply -f -
       - name: Install Locust with Helm (OCI)
         run: |
           helm upgrade --install locust oci://ghcr.io/deliveryhero/helm-charts/locust \

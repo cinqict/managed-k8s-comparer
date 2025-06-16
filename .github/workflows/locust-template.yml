@@ -36,6 +36,14 @@ jobs:
             --set loadtest.locust_locustfile_configmap=my-loadtest-locustfile
       - name: Wait for Locust GUI to be ready
         run: |
+          # Wait for the service to exist
+          for i in {1..30}; do
+            if kubectl get svc locust-master >/dev/null 2>&1; then
+              break
+            fi
+            sleep 5
+          done
+          # Wait for the LoadBalancer IP
           for i in {1..30}; do
             ip=$(kubectl get svc locust-master -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
             if [ -n "$ip" ]; then

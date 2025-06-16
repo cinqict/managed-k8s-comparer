@@ -21,7 +21,7 @@ class Message(BaseModel):
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     app.state.pool = await asyncpg.create_pool(
-        host=DB_HOST, port=DB_PORT, user=DB_USER, password=DB_PASS, database=DB_NAME, ssl=True
+        host=DB_HOST, port=DB_PORT, user=DB_USER, password=DB_PASS, database=DB_NAME
     )
     async with app.state.pool.acquire() as conn:
         await conn.execute('''

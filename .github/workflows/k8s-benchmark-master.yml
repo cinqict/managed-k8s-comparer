@@ -18,7 +18,7 @@ jobs:
 
   monitoring:
     needs: metrics_server
-    uses: ./.github/workflows/prometheus-template.yml
+    uses: ./.github/workflows/monitoring-template.yml
     secrets: inherit
 
   argocd:

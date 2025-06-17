@@ -2,9 +2,9 @@ name: 'K8s Benchmark Master Flow'
 
 on:
   workflow_dispatch:
-  # push:
-  #   branches:
-  #     - master
+  push:
+    branches:
+      - master
 
 jobs:
   infra:

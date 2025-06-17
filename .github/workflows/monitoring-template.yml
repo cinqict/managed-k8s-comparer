@@ -33,12 +33,21 @@ jobs:
           helm upgrade --install prometheus prometheus-community/kube-prometheus-stack --namespace monitoring --create-namespace --wait
       - name: Install Grafana
         run: |
-          helm upgrade --install grafana grafana/grafana --namespace monitoring --set adminPassword=admin --wait -f monitoring/grafana-values.yaml
+          helm upgrade --install grafana grafana/grafana --namespace monitoring --set adminPassword=admin --wait -f grafana-values.yaml
+        working-directory: monitoring
       - name: Print Grafana access info
         run: |
           kubectl get svc -n monitoring grafana
           echo "Default Grafana login: admin / admin"
           echo "To port-forward: kubectl port-forward svc/grafana -n monitoring 3000:80"
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+      - name: Port-forward Grafana
+        run: |
+          kubectl port-forward svc/grafana -n monitoring 3000:80 &
+          PORT_FORWARD_PID=$!
+          sleep 10
+          echo $PORT_FORWARD_PID > /tmp/grafana-port-forward.pid
       - name: Import Kubernetes Cluster Dashboard
         run: |
           # Wait for Grafana to be ready
@@ -52,3 +61,10 @@ jobs:
             -u admin:admin \
             -d @<(jq -n --argfile dash monitoring/grafana-kube-dashboard.json '{dashboard: $dash, overwrite: true}') \
             http://localhost:3000/api/dashboards/db
+      - name: Cleanup Grafana port-forward
+        if: always()
+        run: |
+          if [ -f /tmp/grafana-port-forward.pid ]; then
+            kill $(cat /tmp/grafana-port-forward.pid) || true
+            rm /tmp/grafana-port-forward.pid
+          fi

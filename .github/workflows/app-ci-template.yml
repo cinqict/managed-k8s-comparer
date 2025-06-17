@@ -53,3 +53,7 @@ jobs:
         run: |
           sleep 10
           kubectl --kubeconfig=kubeconfig.yaml -n default rollout restart deployment dummy-app
+
+      - name: Deploy Pod AutoScaler
+        run: |
+          kubectl --kubeconfig=kubeconfig.yaml apply -f ./dummy-app/pod-autoscaler.yaml

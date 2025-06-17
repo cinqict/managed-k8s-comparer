@@ -1,0 +1,44 @@
+# This workflow installs the Kubernetes Metrics Server after infra is provisioned
+name: 'Install Metrics Server'
+
+on:
+  workflow_call:
+
+jobs:
+  metrics_server:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download kubeconfig artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: kubeconfig
+          path: .
+      - name: Set KUBECONFIG env var
+        run: echo "KUBECONFIG=$GITHUB_WORKSPACE/kubeconfig.yaml" >> $GITHUB_ENV
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+      - name: Check if Metrics Server is already installed
+        id: check_metrics
+        run: |
+          if kubectl get deployment metrics-server -n kube-system >nul 2>&1; then
+            echo "installed=true" >> $GITHUB_OUTPUT
+          else
+            echo "installed=false" >> $GITHUB_OUTPUT
+          fi
+      - name: Install Metrics Server if not present
+        if: steps.check_metrics.outputs.installed == 'false'
+        run: |
+          kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+      - name: Wait for Metrics Server to be ready
+        run: |
+          for i in {1..30}; do
+            ready=$(kubectl get deployment metrics-server -n kube-system -o jsonpath='{.status.readyReplicas}')
+            if [ "$ready" = "1" ]; then
+              echo "Metrics Server is ready."
+              break
+            fi
+            echo "Waiting for Metrics Server to be ready... ($i)"
+            sleep 10
+          done

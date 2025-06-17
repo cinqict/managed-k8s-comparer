@@ -23,32 +23,27 @@ provider "azurerm" {
 
 provider "random" {}
 
-resource "azurerm_resource_group" "main" {
-  name     = "rg-noudsavenije-devops"
-  location = "westeurope"
-
-  lifecycle {
-    prevent_destroy = true
-  }
+data "azurerm_resource_group" "main" {
+  name = "rg-noudsavenije-devops"
 }
 
 resource "azurerm_virtual_network" "main" {
   name                = "landing-zone-vnet"
   address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.main.location
-  resource_group_name = azurerm_resource_group.main.name
+  location            = data.azurerm_resource_group.main.location
+  resource_group_name = data.azurerm_resource_group.main.name
 }
 
 resource "azurerm_subnet" "aks" {
   name                 = "aks-subnet"
-  resource_group_name  = azurerm_resource_group.main.name
+  resource_group_name  = data.azurerm_resource_group.main.name
   virtual_network_name = azurerm_virtual_network.main.name
   address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_subnet" "db" {
   name                 = "db-subnet"
-  resource_group_name  = azurerm_resource_group.main.name
+  resource_group_name  = data.azurerm_resource_group.main.name
   virtual_network_name = azurerm_virtual_network.main.name
   address_prefixes     = ["10.0.2.0/24"]
 }
@@ -60,8 +55,8 @@ resource "random_password" "psql" {
 
 resource "azurerm_postgresql_flexible_server" "main" {
   name                   = "dummypsqlserver"
-  resource_group_name    = azurerm_resource_group.main.name
-  location               = azurerm_resource_group.main.location
+  resource_group_name    = data.azurerm_resource_group.main.name
+  location               = data.azurerm_resource_group.main.location
   version                = "15"
   administrator_login    = "psqladmin"
   administrator_password = random_password.psql.result
@@ -80,8 +75,8 @@ resource "azurerm_postgresql_flexible_server_database" "dummydb" {
 
 resource "azurerm_kubernetes_cluster" "main" {
   name                = "dummy-aks"
-  location            = azurerm_resource_group.main.location
-  resource_group_name = azurerm_resource_group.main.name
+  location            = data.azurerm_resource_group.main.location
+  resource_group_name = data.azurerm_resource_group.main.name
   dns_prefix          = "dummyaks"
 
   default_node_pool {

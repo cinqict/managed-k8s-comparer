@@ -14,10 +14,6 @@ jobs:
       TF_VAR_ovh_application_secret: ${{ secrets.OVH_APPLICATION_SECRET }}
       TF_VAR_ovh_consumer_key: ${{ secrets.OVH_CONSUMER_KEY }}
       TF_VAR_ovh_project_id: ${{ secrets.OVH_PROJECT_ID }}
-      AZ_CLIENT_ID: ${{ secrets.AZ_CLIENT_ID }}
-      AZ_CLIENT_SECRET: ${{ secrets.AZ_CLIENT_SECRET }}
-      AZ_SUBSCRIPTION_ID: ${{ secrets.AZ_SUBSCRIPTION_ID }}
-      AZ_TENANT_ID: ${{ secrets.AZ_TENANT_ID }}
       ARM_CLIENT_ID: ${{ secrets.AZ_CLIENT_ID }}
       ARM_CLIENT_SECRET: ${{ secrets.AZ_CLIENT_SECRET }}
       ARM_SUBSCRIPTION_ID: ${{ secrets.AZ_SUBSCRIPTION_ID }}

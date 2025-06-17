@@ -1,12 +1,12 @@
-provider "azurerm" {
-  features {}
-}
-
 terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
       version = ">= 3.0.0"
+    }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.0"
     }
   }
   backend "azurerm" {
@@ -16,6 +16,12 @@ terraform {
     key                  = "terraform.tfstate"
   }
 }
+
+provider "azurerm" {
+  features {}
+}
+
+provider "random" {}
 
 resource "azurerm_resource_group" "main" {
   name     = "rg-noudsavenije-devops"
@@ -47,13 +53,18 @@ resource "azurerm_subnet" "db" {
   address_prefixes     = ["10.0.2.0/24"]
 }
 
+resource "random_password" "psql" {
+  length  = 20
+  special = true
+}
+
 resource "azurerm_postgresql_flexible_server" "main" {
   name                   = "dummypsqlserver"
   resource_group_name    = azurerm_resource_group.main.name
   location               = azurerm_resource_group.main.location
-  version                = "17"
+  version                = "15"
   administrator_login    = "psqladmin"
-  administrator_password = "YourStrongPassword123!"
+  administrator_password = random_password.psql.result
   storage_mb             = 32768
   sku_name               = "B_Standard_B1ms"
   delegated_subnet_id    = azurerm_subnet.db.id
@@ -80,18 +91,11 @@ resource "azurerm_kubernetes_cluster" "main" {
     vnet_subnet_id = azurerm_subnet.aks.id
     min_count  = 1
     max_count  = 3
-    enable_auto_scaling = true
+    auto_scaling_enabled = true
   }
 
   identity {
     type = "SystemAssigned"
-  }
-
-  network_profile {
-    network_plugin = "azure"
-    dns_service_ip = "10.0.10.10"
-    service_cidr   = "10.0.10.0/24"
-    docker_bridge_cidr = "172.17.0.1/16"
   }
 }
 

@@ -35,8 +35,6 @@ jobs:
           helm upgrade --install prometheus prometheus-community/kube-prometheus-stack --namespace monitoring --create-namespace --wait
       - name: Install Grafana
         run: |
-          pwd
-          ls -l
           helm upgrade --install grafana grafana/grafana --namespace monitoring --set adminPassword=admin --wait -f monitoring/grafana-values.yaml
         working-directory: .
       - name: Print Grafana access info
@@ -59,12 +57,19 @@ jobs:
             if curl -s http://localhost:3000/api/health | grep 'database'; then break; fi
             sleep 5
           done
-          # Import official Kubernetes dashboard
+          # Import official Kubernetes dashboard as a home dashboard
+          jq '. + {"dashboard": (.dashboard // .)} | .dashboard.id = null | .dashboard.uid = "k8s-cluster-monitoring" | .dashboard.title = "Kubernetes cluster monitoring (via Prometheus)" | .overwrite = true' monitoring/grafana-kube-dashboard.json > /tmp/k8s-dashboard.json
           curl -s -X POST \
             -H "Content-Type: application/json" \
             -u admin:admin \
-            -d @<(jq -n --argfile dash monitoring/grafana-kube-dashboard.json '{dashboard: $dash, overwrite: true}') \
+            -d @/tmp/k8s-dashboard.json \
             http://localhost:3000/api/dashboards/db
+          # Set as default home dashboard for admin
+          DASH_ID=$(curl -s -u admin:admin http://localhost:3000/api/search?query=k8s-cluster-monitoring | jq '.[0].id')
+          ORG_ID=$(curl -s -u admin:admin http://localhost:3000/api/user/orgs | jq '.[0].orgId')
+          curl -s -X PUT -u admin:admin -H "Content-Type: application/json" \
+            -d "{\"homeDashboardId\": $DASH_ID}" \
+            http://localhost:3000/api/orgs/$ORG_ID/preferences
       - name: Cleanup Grafana port-forward
         if: always()
         run: |

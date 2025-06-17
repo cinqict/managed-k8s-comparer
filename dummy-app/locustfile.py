@@ -1,4 +1,5 @@
 from locust import HttpUser, task, between
+import random
 
 class DummyAppUser(HttpUser):
     wait_time = between(1, 2)
@@ -17,4 +18,5 @@ class DummyAppUser(HttpUser):
 
     @task(1)
     def compute(self):
-        self.client.get("/compute?iterations=1000")
+        iterations = random.randint(100, 1000000)
+        self.client.get(f"/compute?iterations={iterations}")

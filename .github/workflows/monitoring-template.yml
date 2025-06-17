@@ -39,3 +39,16 @@ jobs:
           kubectl get svc -n monitoring grafana
           echo "Default Grafana login: admin / admin"
           echo "To port-forward: kubectl port-forward svc/grafana -n monitoring 3000:80"
+      - name: Import Kubernetes Cluster Dashboard
+        run: |
+          # Wait for Grafana to be ready
+          for i in {1..30}; do
+            if curl -s http://localhost:3000/api/health | grep 'database'; then break; fi
+            sleep 5
+          done
+          # Import official Kubernetes dashboard
+          curl -s -X POST \
+            -H "Content-Type: application/json" \
+            -u admin:admin \
+            -d @<(jq -n --argfile dash monitoring/grafana-kube-dashboard.json '{dashboard: $dash, overwrite: true}') \
+            http://localhost:3000/api/dashboards/db

@@ -8,25 +8,30 @@ on:
 
 jobs:
   infra:
-    uses: ./.github/workflows/terraform-ovh.yml
+    uses: ./.github/workflows/infra/terraform-ovh.yml
+    secrets: inherit
+
+  metrics_server:
+    needs: infra
+    uses: ./.github/workflows/infra/metrics-server-template.yml
+    secrets: inherit
+
+  monitoring:
+    needs: metrics_server
+    uses: ./.github/workflows/monitoring/prometheus-template.yml
     secrets: inherit
 
   argocd:
-    needs: infra
-    uses: ./.github/workflows/argocd-template.yml
+    needs: monitoring
+    uses: ./.github/workflows/app/argocd-template.yml
     secrets: inherit
   
   app_ci:
     needs: argocd
-    uses: ./.github/workflows/app-ci-template.yml
+    uses: ./.github/workflows/app/app-ci-template.yml
     secrets: inherit
 
   locust:
     needs: app_ci
-    uses: ./.github/workflows/locust-template.yml
+    uses: ./.github/workflows/loadtest/locust-template.yml
     secrets: inherit
-
-  # loadtest:
-  #   needs: app_ci
-  #   uses: ./.github/workflows/loadtest-template.yml
-  #   secrets: inherit

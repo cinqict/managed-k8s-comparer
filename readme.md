@@ -39,3 +39,6 @@ Time each deployment (use PowerShell’s Measure-Command or similar).
 Gather pricing info from each provider’s calculator for the same configuration.
 Document any missing features or differences.
 Would you like example scripts for cluster creation on each platform, or help with structuring the blog post in more detail?
+
+kubectl port-forward svc/argocd-server -n argocd 8080:443
+kubectl port-forward svc/grafana -n argocd 3000:443

@@ -1,0 +1,41 @@
+# This workflow installs Prometheus and Grafana after the metrics server is installed
+name: 'Install Prometheus and Grafana'
+
+on:
+  workflow_call:
+
+jobs:
+  monitoring:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download kubeconfig artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: kubeconfig
+          path: .
+      - name: Set KUBECONFIG env var
+        run: echo "KUBECONFIG=$GITHUB_WORKSPACE/kubeconfig.yaml" >> $GITHUB_ENV
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+      - name: Set up Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: 'latest'
+      - name: Add Helm repos
+        run: |
+          helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+          helm repo add grafana https://grafana.github.io/helm-charts
+          helm repo update
+      - name: Install Prometheus stack
+        run: |
+          helm upgrade --install prometheus prometheus-community/kube-prometheus-stack --namespace monitoring --create-namespace --wait
+      - name: Install Grafana
+        run: |
+          helm upgrade --install grafana grafana/grafana --namespace monitoring --set adminPassword=admin --wait
+      - name: Print Grafana access info
+        run: |
+          kubectl get svc -n monitoring grafana
+          echo "Default Grafana login: admin / admin"
+          echo "To port-forward: kubectl port-forward svc/grafana -n monitoring 3000:80"

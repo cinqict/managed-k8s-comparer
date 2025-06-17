@@ -31,11 +31,11 @@ jobs:
       - name: Terraform Apply
         if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
         run: |
-          $start = Get-Date
+          start=$(date +%s)
           terraform -chdir=providers/azure apply -auto-approve
-          $end = Get-Date
-          $duration = ($end - $start).TotalSeconds
-          "Terraform apply duration: $duration seconds" | Out-File -FilePath apply_duration.txt
+          end=$(date +%s)
+          duration=$((end - start))
+          echo "Terraform apply duration: ${duration} seconds" > apply_duration.txt
 
       - name: Export kubeconfig
         run: terraform -chdir=providers/azure output -raw kubeconfig > kubeconfig.yaml

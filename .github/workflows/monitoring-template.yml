@@ -33,7 +33,8 @@ jobs:
           helm upgrade --install prometheus prometheus-community/kube-prometheus-stack --namespace monitoring --create-namespace --wait
       - name: Install Grafana
         run: |
-          helm upgrade --install grafana grafana/grafana --namespace monitoring --set adminPassword=admin --wait -f ../monitoring/grafana-values.yaml
+          helm upgrade --install grafana grafana/grafana --namespace monitoring --set adminPassword=admin --wait -f monitoring/grafana-values.yaml
+        working-directory: ../monitoring
       - name: Print Grafana access info
         run: |
           kubectl get svc -n monitoring grafana

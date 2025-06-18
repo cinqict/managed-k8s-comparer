@@ -18,5 +18,5 @@ class DummyAppUser(HttpUser):
 
     @task(1)
     def compute(self):
-        iterations = 50000
+        iterations = 80000
         self.client.get(f"/compute?iterations={iterations}")

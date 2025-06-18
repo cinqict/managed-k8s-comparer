@@ -47,10 +47,11 @@ jobs:
             echo "ERROR: No external IP found for dummy-app-service. Exiting."
             exit 1
           fi
-          locust -f dummy-app/locustfile.py --headless -u 300 -r 10 -t 300s --host http://$APP_IP --csv locust_results
+          locust -f dummy-app/locustfile.py --headless -u 500 -r 10 -t 300s --host http://$APP_IP --csv locust_results
         shell: bash
       - name: Upload Locust results
         if: ${{ !inputs.demo_mode }}
         uses: actions/upload-artifact@v4
         with:
           name: locust-results
+          path: locust_results.csv

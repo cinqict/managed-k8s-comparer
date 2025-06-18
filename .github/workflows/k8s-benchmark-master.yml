@@ -77,4 +77,4 @@ jobs:
       - name: Set KUBECONFIG env var
         run: echo "KUBECONFIG=$GITHUB_WORKSPACE/kubeconfig.yaml" >> $GITHUB_ENV
       - name: Run scale-up measurement script
-        run: python dummy-app/measure_scaleup.py
+        run: python monitoring/measure_scaleup.py

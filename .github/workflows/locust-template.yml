@@ -42,8 +42,11 @@ jobs:
         if: ${{ !inputs.demo_mode }}
         run: |
           pip install locust
-          # Get external IP of dummy app service (example for LoadBalancer)
-          export APP_IP=$(kubectl get svc dummy-app-service -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+          export APP_IP=$(kubectl get svc dummy-app -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+          if [ -z "$APP_IP" ]; then
+            echo "ERROR: No external IP found for dummy-app-service. Exiting."
+            exit 1
+          fi
           locust -f dummy-app/locustfile.py --headless -u 300 -r 10 -t 300s --host http://$APP_IP --csv locust_results
         shell: bash
       - name: Upload Locust results

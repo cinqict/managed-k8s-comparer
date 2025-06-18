@@ -1,6 +1,10 @@
 name: 'Locust Loadtest'
 on:
   workflow_call:
+    inputs:
+      demo_mode:
+        required: false
+        type: boolean
 jobs:
   locust:
     runs-on: ubuntu-latest
@@ -34,3 +38,8 @@ jobs:
             --set worker.replicas=2 \
             --set loadtest.name=my-loadtest \
             --set loadtest.locust_locustfile_configmap=my-loadtest-locustfile
+      - name: Trigger Locust load test
+        if: ${{ !inputs.demo_mode }}
+        run: |
+          pip install locust
+          locust -f dummy-app/locustfile.py --headless -u 300 -r 10 -t 300s

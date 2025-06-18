@@ -2,6 +2,21 @@ name: 'K8s Benchmark Master Flow'
 
 on:
   workflow_dispatch:
+    inputs:
+      demo_mode:
+        description: 'Run in demo mode (installs grafana)'
+        required: false
+        default: false
+        type: boolean
+      csp:
+        description: 'Select Cloud Service Provider'
+        required: true
+        default: 'ovh'
+        type: choice
+        options:
+          - azure
+          - ovh
+          - aws
   push:
     branches:
       - master
@@ -10,6 +25,8 @@ jobs:
   infra:
     uses: ./.github/workflows/terraform-ovh.yml
     secrets: inherit
+    with:
+      csp: ${{ github.event.inputs.csp || 'ovh' }}
 
   metrics_server:
     needs: infra
@@ -17,12 +34,13 @@ jobs:
     secrets: inherit
 
   monitoring:
+    if: ${{ github.event.inputs.demo_mode == 'true' }}
     needs: metrics_server
     uses: ./.github/workflows/monitoring-template.yml
     secrets: inherit
 
   argocd:
-    needs: monitoring
+    needs: metrics_server
     uses: ./.github/workflows/argocd-template.yml
     secrets: inherit
   
@@ -35,3 +53,28 @@ jobs:
     needs: app_ci
     uses: ./.github/workflows/locust-template.yml
     secrets: inherit
+    with:
+      demo_mode: ${{ github.event.inputs.demo_mode || false }}
+
+  measure_scaleup:
+    needs: locust
+    if: ${{ !github.event.inputs.demo_mode }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Install dependencies
+        run: pip install kubernetes
+      - name: Download kubeconfig artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: kubeconfig
+          path: .
+      - name: Set KUBECONFIG env var
+        run: echo "KUBECONFIG=$GITHUB_WORKSPACE/kubeconfig.yaml" >> $GITHUB_ENV
+      - name: Run scale-up measurement script
+        run: python dummy-app/measure_scaleup.py

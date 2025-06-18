@@ -1,0 +1,28 @@
+# This workflow deploys OVH landing zone resources using Terraform
+name: 'Terraform OVH Landing Zone'
+
+on:
+  workflow_call:
+    inputs:
+      provider:
+        required: false
+        type: string
+        default: 'ovh'
+
+jobs:
+  ovh-terraform:
+    if: ${{ inputs.provider == 'ovh' }}
+    uses: ./.github/workflows/terraform-ovh.yml
+    secrets: inherit
+  azure-terraform:
+    if: ${{ inputs.provider == 'azure' }}
+    uses: ./.github/workflows/terraform-azure.yml
+    secrets: inherit
+  aws-terraform:
+    if: ${{ inputs.provider == 'aws' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Not implemented
+        run: |
+          echo "AWS provider is not implemented yet."
+          exit 1

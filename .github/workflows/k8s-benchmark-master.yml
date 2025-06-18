@@ -26,7 +26,7 @@ jobs:
     uses: ./.github/workflows/terraform.yml
     secrets: inherit
     with:
-      csp: ${{ github.event.inputs.csp || 'ovh' }}
+      provider: ${{ github.event.inputs.csp || 'ovh' }}
 
   metrics_server:
     needs: infra

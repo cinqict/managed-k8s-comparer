@@ -4,7 +4,7 @@ name: 'Terraform Landing Zone'
 on:
   workflow_call:
     inputs:
-      provider:
+      csp:
         required: false
         type: string
         default: 'ovh'

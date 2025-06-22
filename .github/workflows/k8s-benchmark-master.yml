@@ -23,7 +23,7 @@ on:
 
 jobs:
   infra:
-    uses: ./.github/pipelines/terraform.yml
+    uses: ./.github/workflows/terraform.yml
     secrets: inherit
     with:
       csp: ${{ github.event.inputs.csp || 'ovh' }}

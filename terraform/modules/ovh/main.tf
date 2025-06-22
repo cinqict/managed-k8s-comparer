@@ -108,6 +108,14 @@ resource "ovh_cloud_project_database" "pgsqldb" {
     subnet_id   = ovh_cloud_project_network_private_subnet.data.id
   }
   flavor        = var.pgsql_flavor
+
+  dynamic "ip_restriction" {
+    for_each = var.pgsql_ip_restrictions
+    content {
+      ip          = ip_restriction.value.ip
+      description = ip_restriction.value.description
+    }
+  }
 }
 
 data "ovh_cloud_project_database" "pgsqldb_data" {
@@ -121,16 +129,6 @@ resource "ovh_cloud_project_database_database" "pgsqldb_database" {
   engine      = data.ovh_cloud_project_database.pgsqldb_data.engine
   cluster_id  = data.ovh_cloud_project_database.pgsqldb_data.id
   name        = "dummydb"
-}
-
-# Add IP restrictions as separate resources
-resource "ovh_cloud_project_database_ip_restriction" "ip_restriction" {
-  for_each    = { for ipr in var.pgsql_ip_restrictions : ipr.ip => ipr }
-  service_name = data.ovh_cloud_project_database.pgsqldb_data.service_name
-  engine       = data.ovh_cloud_project_database.pgsqldb_data.engine
-  cluster_id   = data.ovh_cloud_project_database.pgsqldb_data.id
-  ip           = each.value.ip
-  description  = each.value.description
 }
 
 # Outputs

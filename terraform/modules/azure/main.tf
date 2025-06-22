@@ -28,6 +28,18 @@ resource "random_password" "psql" {
   special = true
 }
 
+resource "azurerm_private_dns_zone" "postgres" {
+  name                = "privatelink.postgres.database.azure.com"
+  resource_group_name = data.azurerm_resource_group.main.name
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "postgres" {
+  name                  = "postgres-vnet-link"
+  resource_group_name   = data.azurerm_resource_group.main.name
+  private_dns_zone_name = azurerm_private_dns_zone.postgres.name
+  virtual_network_id    = azurerm_virtual_network.main.id
+}
+
 resource "azurerm_postgresql_flexible_server" "main" {
   name                   = "dummypsqlserver"
   resource_group_name    = data.azurerm_resource_group.main.name
@@ -39,6 +51,7 @@ resource "azurerm_postgresql_flexible_server" "main" {
   sku_name               = "B_Standard_B1ms"
   delegated_subnet_id    = azurerm_subnet.db.id
   zone                   = "1"
+  private_dns_zone_id    = azurerm_private_dns_zone.postgres.id
 }
 
 resource "azurerm_postgresql_flexible_server_database" "dummydb" {
@@ -62,6 +75,13 @@ resource "azurerm_kubernetes_cluster" "main" {
     min_count  = 1
     max_count  = 3
     auto_scaling_enabled = true
+  }
+
+  network_profile {
+    network_plugin     = "azure"
+    service_cidr       = "10.1.0.0/16"
+    dns_service_ip     = "10.1.0.10"
+    docker_bridge_cidr = "172.17.0.1/16"
   }
 
   identity {

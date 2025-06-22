@@ -23,10 +23,10 @@ on:
 
 jobs:
   infra:
-    uses: ./.github/workflows/terraform.yml
+    uses: ./.github/pipelines/terraform.yml
     secrets: inherit
     with:
-      provider: ${{ github.event.inputs.csp || 'ovh' }}
+      csp: ${{ github.event.inputs.csp || 'ovh' }}
 
   metrics_server:
     needs: infra

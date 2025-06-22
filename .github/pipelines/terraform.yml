@@ -1,0 +1,135 @@
+# This workflow deploys landing zone resources using Terraform
+name: 'Terraform Landing Zone'
+
+on:
+  workflow_call:
+    inputs:
+      provider:
+        required: false
+        type: string
+        default: 'ovh'
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    env:
+      # Common env vars (add more if needed)
+      TF_VAR_ovh_endpoint: ${{ inputs.csp == 'ovh' && secrets.OVH_ENDPOINT || '' }}
+      TF_VAR_ovh_application_key: ${{ inputs.csp == 'ovh' && secrets.OVH_APPLICATION_KEY || '' }}
+      TF_VAR_ovh_application_secret: ${{ inputs.csp == 'ovh' && secrets.OVH_APPLICATION_SECRET || '' }}
+      TF_VAR_ovh_consumer_key: ${{ inputs.csp == 'ovh' && secrets.OVH_CONSUMER_KEY || '' }}
+      TF_VAR_ovh_project_id: ${{ inputs.csp == 'ovh' && secrets.OVH_PROJECT_ID || '' }}
+      ARM_CLIENT_ID: ${{ secrets.AZ_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secrets.AZ_CLIENT_SECRET }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.AZ_SUBSCRIPTION_ID }}
+      ARM_TENANT_ID: ${{ secrets.AZ_TENANT_ID }}
+      TF_VAR_csp: ${{ inputs.csp }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.7.5
+
+      - name: Terraform Init
+        run: terraform -chdir=terraform init --reconfigure
+
+      - name: Terraform Plan
+        run: terraform -chdir=terraform plan
+
+      - name: Terraform Apply
+        run: |
+          start=$(date +%s)
+          terraform -chdir=terraform apply -auto-approve
+          end=$(date +%s)
+          duration=$((end - start))
+          echo "Terraform apply duration: ${duration} seconds" > apply_duration.txt
+
+      - name: Export kubeconfig
+        run: terraform -chdir=terraform output -raw kubeconfig > kubeconfig.yaml
+
+      - name: Upload kubeconfig as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kubeconfig
+          path: kubeconfig.yaml
+
+      # OVH-specific steps
+      - name: Export OVH pgsql_service_name to file
+        if: ${{ inputs.csp == 'ovh' }}
+        run: terraform -chdir=providers/ovh output -raw pgsql_cluster_id > pgsql_service_name.txt
+
+      - name: Install OVH Python SDK
+        if: ${{ inputs.csp == 'ovh' }}
+        run: pip install ovh
+
+      - name: Export OVH admin DB credentials to files
+        if: ${{ inputs.csp == 'ovh' }}
+        run: |
+          export PGSQL_SERVICE_NAME=$(cat pgsql_service_name.txt)
+          python providers/ovh/scripts/retrieve_pg_admin_credentials.py
+        env:
+          OVH_ENDPOINT: ${{ secrets.OVH_ENDPOINT }}
+          OVH_APPLICATION_KEY: ${{ secrets.OVH_APPLICATION_KEY }}
+          OVH_APPLICATION_SECRET: ${{ secrets.OVH_APPLICATION_SECRET }}
+          OVH_CONSUMER_KEY: ${{ secrets.OVH_CONSUMER_KEY }}
+          OVH_PROJECT_ID: ${{ secrets.OVH_PROJECT_ID }}
+
+      - name: Export OVH DB credentials to files
+        if: ${{ inputs.csp == 'ovh' }}
+        run: |
+          terraform -chdir=providers/ovh output -raw pgsql_host > pgsql_host.txt
+          terraform -chdir=providers/ovh output -raw pgsql_port > pgsql_port.txt
+          terraform -chdir=providers/ovh output -raw pgsql_dbname > pgsql_dbname.txt
+
+      - name: Upload OVH DB credentials as artifact
+        if: ${{ inputs.csp == 'ovh' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pgsql-credentials
+          path: |
+            pgsql_host.txt
+            pgsql_port.txt
+            pgsql_username.txt
+            pgsql_password.txt
+            pgsql_dbname.txt
+
+      # Azure-specific steps
+      - name: Export Azure admin DB credentials to files
+        if: ${{ inputs.csp == 'azure' }}
+        run: |
+          export PGSQL_SERVICE_NAME=$(cat pgsql_service_name.txt)
+          python providers/azure/scripts/retrieve_pg_admin_credentials.py
+        env:
+          AZURE_CLIENT_ID: ${{ secrets.AZ_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZ_CLIENT_SECRET }}
+          AZURE_TENANT_ID: ${{ secrets.AZ_TENANT_ID }}
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZ_SUBSCRIPTION_ID }}
+
+      - name: Export Azure DB credentials to files
+        if: ${{ inputs.csp == 'azure' }}
+        run: |
+          terraform -chdir=providers/azure output -raw pgsql_host > pgsql_host.txt
+          terraform -chdir=providers/azure output -raw pgsql_port > pgsql_port.txt
+          terraform -chdir=providers/azure output -raw pgsql_dbname > pgsql_dbname.txt
+
+      - name: Upload Azure DB credentials as artifact
+        if: ${{ inputs.csp == 'azure' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pgsql-credentials
+          path: |
+            pgsql_host.txt
+            pgsql_port.txt
+            pgsql_username.txt
+            pgsql_password.txt
+            pgsql_dbname.txt
+
+      # AWS placeholder
+      - name: Not implemented
+        if: ${{ inputs.csp == 'aws' }}
+        run: |
+          echo "AWS provider is not implemented yet."
+          exit 1

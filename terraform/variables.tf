@@ -30,3 +30,9 @@ variable "iam_groups" {
   type        = list(string)
   default     = ["Readers", "Developers", "Operators"]
 }
+
+variable "csp" {
+  description = "Cloud service provider to deploy to (e.g., ovh, azure, aws)"
+  type        = string
+  default     = "ovh"
+}

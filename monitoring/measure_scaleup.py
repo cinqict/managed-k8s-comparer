@@ -31,6 +31,24 @@ for condition in new_node.status.conditions:
         break
 print(f"New node '{node_name}' became Ready at: {node_ready_time}")
 
+# Find NodeReady event for the new node
+node_ready_event = None
+for event in events:
+    if (
+        event.involved_object.kind == "Node"
+        and event.involved_object.name == node_name
+        and event.reason == "NodeReady"
+        and event.type == "Normal"
+        and (event.last_timestamp or event.event_time) > scale_up_time
+    ):
+        node_ready_event = event
+        break
+if node_ready_event:
+    node_ready_event_time = node_ready_event.last_timestamp or node_ready_event.event_time
+    print(f"NodeReady event for '{node_name}' at: {node_ready_event_time}")
+else:
+    print(f"No NodeReady event found for node '{node_name}' after scale-up.")
+
 # Find the first pod scheduled on the new node
 pods = v1.list_pod_for_all_namespaces(field_selector=f"spec.nodeName={node_name}").items
 if not pods:

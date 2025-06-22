@@ -31,7 +31,12 @@ jobs:
           terraform_version: 1.7.5
 
       - name: Terraform Init
-        run: terraform -chdir=providers/ovh init --reconfigure
+        run: |
+          terraform -chdir=terraform init --reconfigure \
+            -backend-config="resource_group_name=rg-noudsavenije-devops" \
+            -backend-config="storage_account_name=noudstfbackend" \
+            -backend-config="container_name=ovhtfstate" \
+            -backend-config="key=terraform.tfstate"
 
       - name: Terraform Destroy
-        run: terraform -chdir=providers/ovh destroy -auto-approve
+        run: terraform -chdir=terraform destroy -auto-approve

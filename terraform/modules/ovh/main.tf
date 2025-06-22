@@ -109,7 +109,7 @@ resource "ovh_cloud_project_database" "pgsqldb" {
   }
   flavor        = var.pgsql_flavor
 
-  dynamic "ip_restriction" {
+  dynamic "ip_restrictions" {
     for_each = var.pgsql_ip_restrictions
     content {
       ip          = ip_restriction.value.ip

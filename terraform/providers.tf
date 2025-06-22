@@ -22,8 +22,8 @@ provider "azurerm" {
 provider "random" {}
 
 provider "ovh" {
-  endpoint           = var.ovh_endpoint
-  application_key    = var.ovh_application_key
-  application_secret = var.ovh_application_secret
-  consumer_key       = var.ovh_consumer_key
+  endpoint           = var.ovh_endpoint != "" ? var.ovh_endpoint : "ovh-eu"
+  application_key    = var.ovh_application_key != "" ? var.ovh_application_key : "dummy"
+  application_secret = var.ovh_application_secret != "" ? var.ovh_application_secret : "dummy"
+  consumer_key       = var.ovh_consumer_key != "" ? var.ovh_consumer_key : "dummy"
 }

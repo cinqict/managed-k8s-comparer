@@ -58,7 +58,7 @@ jobs:
 
   measure_scaleup:
     needs: locust
-    if: ${{ !github.event.inputs.demo_mode }}
+    if: ${{ github.event.inputs.demo_mode == 'false' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository

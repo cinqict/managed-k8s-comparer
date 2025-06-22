@@ -34,7 +34,12 @@ jobs:
           terraform_version: 1.7.5
 
       - name: Terraform Init
-        run: terraform -chdir=terraform init --reconfigure
+        run: |
+          terraform -chdir=terraform init --reconfigure \
+            -backend-config="resource_group_name=rg-noudsavenije-devops" \
+            -backend-config="storage_account_name=noudstfbackend" \
+            -backend-config="container_name=${{ inputs.csp }}tfstate" \
+            -backend-config="key=terraform.tfstate"
 
       - name: Terraform Plan
         run: terraform -chdir=terraform plan

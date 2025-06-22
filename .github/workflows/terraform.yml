@@ -62,10 +62,6 @@ jobs:
           path: kubeconfig.yaml
 
       # OVH-specific steps
-      - name: Export OVH pgsql_service_name to file
-        if: ${{ inputs.csp == 'ovh' }}
-        run: terraform -chdir=terraform output -raw pgsql_cluster_id > pgsql_service_name.txt
-
       - name: Install OVH Python SDK
         if: ${{ inputs.csp == 'ovh' }}
         run: pip install ovh
@@ -73,7 +69,7 @@ jobs:
       - name: Export OVH admin DB credentials to files
         if: ${{ inputs.csp == 'ovh' }}
         run: |
-          export PGSQL_SERVICE_NAME=$(cat pgsql_service_name.txt)
+          export PGSQL_SERVICE_NAME=$(terraform -chdir=terraform output -raw pgsql_cluster_id)
           python terraform/modules/ovh/scripts/retrieve_pg_admin_credentials.py
         env:
           OVH_ENDPOINT: ${{ secrets.OVH_ENDPOINT }}
@@ -102,25 +98,16 @@ jobs:
             pgsql_dbname.txt
 
       # Azure-specific steps
-      - name: Export Azure admin DB credentials to files
-        if: ${{ inputs.csp == 'azure' }}
-        run: |
-          export PGSQL_SERVICE_NAME=$(cat pgsql_service_name.txt)
-          python terraform/modules/azure/scripts/retrieve_pg_admin_credentials.py
-        env:
-          AZURE_CLIENT_ID: ${{ secrets.AZ_CLIENT_ID }}
-          AZURE_CLIENT_SECRET: ${{ secrets.AZ_CLIENT_SECRET }}
-          AZURE_TENANT_ID: ${{ secrets.AZ_TENANT_ID }}
-          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZ_SUBSCRIPTION_ID }}
-
-      - name: Export Azure DB credentials to files
+      - name: Export DB credentials to files
         if: ${{ inputs.csp == 'azure' }}
         run: |
           terraform -chdir=terraform output -raw pgsql_host > pgsql_host.txt
           terraform -chdir=terraform output -raw pgsql_port > pgsql_port.txt
           terraform -chdir=terraform output -raw pgsql_dbname > pgsql_dbname.txt
+          terraform -chdir=terraform output -raw pgsql_username > pgsql_username.txt
+          terraform -chdir=terraform output -raw pgsql_password > pgsql_password.txt
 
-      - name: Upload Azure DB credentials as artifact
+      - name: Upload DB credentials as artifact
         if: ${{ inputs.csp == 'azure' }}
         uses: actions/upload-artifact@v4
         with:

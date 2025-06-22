@@ -54,7 +54,7 @@ jobs:
     uses: ./.github/workflows/locust-template.yml
     secrets: inherit
     with:
-      demo_mode: ${{ github.event.inputs.demo_mode || false }}
+      demo_mode: ${{ github.event.inputs.demo_mode == 'true' }}
 
   measure_scaleup:
     needs: locust

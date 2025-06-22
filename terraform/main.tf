@@ -1,4 +1,7 @@
 # Top-level Terraform configuration for multi-cloud Landing Zone
+terraform {
+  backend "azurerm" {}
+}
 
 module "ovh_landing_zone" {
   source = "./modules/ovh"

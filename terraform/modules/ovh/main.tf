@@ -1,8 +1,3 @@
-# OVH Landing Zone Terraform Configuration
-
-# This is a starting point for provisioning a landing zone on OVH Cloud.
-# It includes a virtual network, PostgreSQL, object storage, and a managed Kubernetes cluster.
-
 terraform {
   required_providers {
     ovh = {
@@ -25,21 +20,20 @@ provider "ovh" {
   consumer_key       = var.ovh_consumer_key
 }
 
-# Example: Create a Network (Private Network)
 resource "ovh_cloud_project_network_private" "vnet" {
   service_name = var.ovh_project_id
-  name         = "landing-zone-vnet"
-  regions      = ["GRA9"]
+  name         = var.vnet_name
+  regions      = [var.ovh_region]
 }
 
 # Subnet 1: Ingress (for ingress controllers or load balancer)
 resource "ovh_cloud_project_network_private_subnet" "ingress" {
   service_name = var.ovh_project_id
   network_id   = ovh_cloud_project_network_private.vnet.id
-  region       = "GRA9"
-  start        = "192.168.10.10"
-  end          = "192.168.10.200"
-  network      = "192.168.10.0/24"
+  region       = var.ovh_region
+  start        = var.ingress_subnet_start
+  end          = var.ingress_subnet_end
+  network      = var.ingress_subnet_cidr
   dhcp         = true
   no_gateway   = false
 }
@@ -48,10 +42,10 @@ resource "ovh_cloud_project_network_private_subnet" "ingress" {
 resource "ovh_cloud_project_network_private_subnet" "app" {
   service_name = var.ovh_project_id
   network_id   = ovh_cloud_project_network_private.vnet.id
-  region       = "GRA9"
-  start        = "192.168.20.10"
-  end          = "192.168.20.200"
-  network      = "192.168.20.0/24"
+  region       = var.ovh_region
+  start        = var.app_subnet_start
+  end          = var.app_subnet_end
+  network      = var.app_subnet_cidr
   dhcp         = true
   no_gateway   = false
 }
@@ -60,10 +54,10 @@ resource "ovh_cloud_project_network_private_subnet" "app" {
 resource "ovh_cloud_project_network_private_subnet" "data" {
   service_name = var.ovh_project_id
   network_id   = ovh_cloud_project_network_private.vnet.id
-  region       = "GRA9"
-  start        = "192.168.30.10"
-  end          = "192.168.30.200"
-  network      = "192.168.30.0/24"
+  region       = var.ovh_region
+  start        = var.data_subnet_start
+  end          = var.data_subnet_end
+  network      = var.data_subnet_cidr
   dhcp         = true
   no_gateway   = false
 }
@@ -71,28 +65,28 @@ resource "ovh_cloud_project_network_private_subnet" "data" {
 # Update Object Storage to supported resource
 resource "ovh_cloud_project_storage" "storage" {
   service_name = var.ovh_project_id
-  region_name  = "GRA"
-  name         = "nhs-landingzone-bucket"
+  region_name  = var.ovh_region_short
+  name         = var.object_storage_name
   versioning = {
-    status = "enabled"
+    status = var.object_storage_versioning
   }
 }
 
 resource "ovh_cloud_project_gateway" "gateway" {
   service_name = var.ovh_project_id
-  name       = "gateway"
-  model      = "s"
-  region     = "GRA9"
+  name       = var.gateway_name
+  model      = var.gateway_model
+  region     = var.ovh_region
   network_id = local.vnet_openstack_id
-  subnet_id  = ovh_cloud_project_network_private_subnet.app.id
+  subnet_id  = ovh_cloud_project_network_private_subnet.ingress.id
 }
 
 # Update Kubernetes Cluster resource and add node pool
 resource "ovh_cloud_project_kube" "cluster" {
   service_name = var.ovh_project_id
-  name         = "landing-zone-k8s"
-  region       = "GRA9"
-  version      = "1.31"
+  name         = var.k8s_cluster_name
+  region       = var.ovh_region
+  version      = var.k8s_version
   private_network_id = local.vnet_openstack_id
   nodes_subnet_id = ovh_cloud_project_network_private_subnet.app.id
   private_network_configuration {
@@ -107,34 +101,26 @@ resource "ovh_cloud_project_kube" "cluster" {
 resource "ovh_cloud_project_kube_nodepool" "default" {
   service_name  = ovh_cloud_project_kube.cluster.service_name
   kube_id      = ovh_cloud_project_kube.cluster.id
-  name         = "default"
-  flavor_name  = "b3-8"
-  desired_nodes = 1
-  max_nodes     = 3
-  min_nodes     = 1
-  autoscale     = true
+  name         = var.k8s_nodepool_name
+  flavor_name  = var.k8s_nodepool_flavor
+  desired_nodes = var.k8s_nodepool_desired_nodes
+  max_nodes     = var.k8s_nodepool_max_nodes
+  min_nodes     = var.k8s_nodepool_min_nodes
+  autoscale     = var.k8s_nodepool_autoscale
 }
 
 resource "ovh_cloud_project_database" "pgsqldb" {
   service_name  = var.ovh_project_id
-  description   = "my-first-postgresql"
+  description   = var.pgsql_description
   engine        = "postgresql"
-  version       = "17"
-  plan          = "essential"
+  version       = var.pgsql_version
+  plan          = var.pgsql_plan
   nodes {
-    region      = "GRA"
+    region      = var.ovh_region_short
     network_id  = local.vnet_openstack_id
     subnet_id   = ovh_cloud_project_network_private_subnet.data.id
   }
-  flavor        = "db1-4"
-  ip_restrictions {
-    description = "ip 1"
-    ip = "178.97.6.0/24"
-  }
-  ip_restrictions {
-    description = "cluster subnet"
-    ip = "192.168.20.0/24"
-  }
+  flavor        = var.pgsql_flavor
 }
 
 data "ovh_cloud_project_database" "pgsqldb_data" {
@@ -148,6 +134,16 @@ resource "ovh_cloud_project_database_database" "pgsqldb_database" {
   engine      = data.ovh_cloud_project_database.pgsqldb_data.engine
   cluster_id  = data.ovh_cloud_project_database.pgsqldb_data.id
   name        = "dummydb"
+}
+
+# Add IP restrictions as separate resources
+resource "ovh_cloud_project_database_ip_restriction" "ip_restriction" {
+  for_each    = { for ipr in var.pgsql_ip_restrictions : ipr.ip => ipr }
+  service_name = data.ovh_cloud_project_database.pgsqldb_data.service_name
+  engine       = data.ovh_cloud_project_database.pgsqldb_data.engine
+  cluster_id   = data.ovh_cloud_project_database.pgsqldb_data.id
+  ip           = each.value.ip
+  description  = each.value.description
 }
 
 # Outputs

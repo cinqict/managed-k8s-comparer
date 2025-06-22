@@ -17,9 +17,9 @@ on:
           - azure
           - ovh
           - aws
-  push:
-    branches:
-      - master
+  # push:
+  #   branches:
+  #     - master
 
 jobs:
   infra:

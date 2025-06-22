@@ -1,25 +1,3 @@
-terraform {
-  required_providers {
-    ovh = {
-      source  = "ovh/ovh"
-      version = ">= 0.44.0"
-    }
-  }
-  backend "azurerm" {
-    resource_group_name  = "rg-noudsavenije-devops"
-    storage_account_name = "noudstfbackend"
-    container_name       = "ovhtfstate"
-    key                  = "terraform.tfstate"
-  }
-}
-
-provider "ovh" {
-  endpoint           = var.ovh_endpoint
-  application_key    = var.ovh_application_key
-  application_secret = var.ovh_application_secret
-  consumer_key       = var.ovh_consumer_key
-}
-
 resource "ovh_cloud_project_network_private" "vnet" {
   service_name = var.ovh_project_id
   name         = var.vnet_name

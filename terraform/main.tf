@@ -1,11 +1,5 @@
 # Top-level Terraform configuration for multi-cloud Landing Zone
 
-variable "csp" {
-  description = "Cloud service provider to deploy to (e.g., ovh, azure, aws)"
-  type        = string
-  default     = "ovh"
-}
-
 module "ovh_landing_zone" {
   source = "./modules/ovh"
   count  = var.csp == "ovh" ? 1 : 0
@@ -23,31 +17,24 @@ module "ovh_landing_zone" {
 output "kubeconfig" {
   value     = module.ovh_landing_zone[0].kubeconfig
   sensitive = true
-  condition = var.csp == "ovh"
 }
 
 output "object_storage_name" {
   value     = module.ovh_landing_zone[0].object_storage_name
-  condition = var.csp == "ovh"
 }
 
 output "pgsql_host" {
   value     = module.ovh_landing_zone[0].pgsql_host
-  condition = var.csp == "ovh"
 }
 output "pgsql_port" {
   value     = module.ovh_landing_zone[0].pgsql_port
-  condition = var.csp == "ovh"
 }
 output "pgsql_uri" {
   value     = module.ovh_landing_zone[0].pgsql_uri
-  condition = var.csp == "ovh"
 }
 output "pgsql_dbname" {
   value     = module.ovh_landing_zone[0].pgsql_dbname
-  condition = var.csp == "ovh"
 }
 output "pgsql_cluster_id" {
   value     = module.ovh_landing_zone[0].pgsql_cluster_id
-  condition = var.csp == "ovh"
 }

@@ -23,7 +23,6 @@ jobs:
       ARM_CLIENT_SECRET: ${{ secrets.AZ_CLIENT_SECRET }}
       ARM_SUBSCRIPTION_ID: ${{ secrets.AZ_SUBSCRIPTION_ID }}
       ARM_TENANT_ID: ${{ secrets.AZ_TENANT_ID }}
-      TF_VAR_csp: ${{ inputs.csp }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -42,18 +41,18 @@ jobs:
             -backend-config="key=terraform.tfstate"
 
       - name: Terraform Plan
-        run: terraform -chdir=terraform plan
+        run: terraform -chdir=terraform/${{ inputs.csp }} plan
 
       - name: Terraform Apply
         run: |
           start=$(date +%s)
-          terraform -chdir=terraform apply -auto-approve
+          terraform -chdir=terraform/${{ inputs.csp }} apply -auto-approve
           end=$(date +%s)
           duration=$((end - start))
           echo "Terraform apply duration: ${duration} seconds" > apply_duration.txt
 
       - name: Export kubeconfig
-        run: terraform -chdir=terraform output -raw kubeconfig > kubeconfig.yaml
+        run: terraform -chdir=terraform/${{ inputs.csp }} output -raw kubeconfig > kubeconfig.yaml
 
       - name: Upload kubeconfig as artifact
         uses: actions/upload-artifact@v4
@@ -69,8 +68,8 @@ jobs:
       - name: Export OVH admin DB credentials to files
         if: ${{ inputs.csp == 'ovh' }}
         run: |
-          export PGSQL_SERVICE_NAME=$(terraform -chdir=terraform output -raw pgsql_cluster_id)
-          python terraform/modules/ovh/scripts/retrieve_pg_admin_credentials.py
+          export PGSQL_SERVICE_NAME=$(terraform -chdir=terraform/${{ inputs.csp }} output -raw pgsql_cluster_id)
+          python terraform/ovh/scripts/retrieve_pg_admin_credentials.py
         env:
           OVH_ENDPOINT: ${{ secrets.OVH_ENDPOINT }}
           OVH_APPLICATION_KEY: ${{ secrets.OVH_APPLICATION_KEY }}
@@ -81,9 +80,9 @@ jobs:
       - name: Export OVH DB credentials to files
         if: ${{ inputs.csp == 'ovh' }}
         run: |
-          terraform -chdir=terraform output -raw pgsql_host > pgsql_host.txt
-          terraform -chdir=terraform output -raw pgsql_port > pgsql_port.txt
-          terraform -chdir=terraform output -raw pgsql_dbname > pgsql_dbname.txt
+          terraform -chdir=terraform/${{ inputs.csp }} output -raw pgsql_host > pgsql_host.txt
+          terraform -chdir=terraform/${{ inputs.csp }} output -raw pgsql_port > pgsql_port.txt
+          terraform -chdir=terraform/${{ inputs.csp }} output -raw pgsql_dbname > pgsql_dbname.txt
 
       - name: Upload OVH DB credentials as artifact
         if: ${{ inputs.csp == 'ovh' }}
@@ -101,11 +100,11 @@ jobs:
       - name: Export DB credentials to files
         if: ${{ inputs.csp == 'azure' }}
         run: |
-          terraform -chdir=terraform output -raw pgsql_host > pgsql_host.txt
-          terraform -chdir=terraform output -raw pgsql_port > pgsql_port.txt
-          terraform -chdir=terraform output -raw pgsql_dbname > pgsql_dbname.txt
-          terraform -chdir=terraform output -raw pgsql_username > pgsql_username.txt
-          terraform -chdir=terraform output -raw pgsql_password > pgsql_password.txt
+          terraform -chdir=terraform/${{ inputs.csp }} output -raw pgsql_host > pgsql_host.txt
+          terraform -chdir=terraform/${{ inputs.csp }} output -raw pgsql_port > pgsql_port.txt
+          terraform -chdir=terraform/${{ inputs.csp }} output -raw pgsql_dbname > pgsql_dbname.txt
+          terraform -chdir=terraform/${{ inputs.csp }} output -raw pgsql_username > pgsql_username.txt
+          terraform -chdir=terraform/${{ inputs.csp }} output -raw pgsql_password > pgsql_password.txt
 
       - name: Upload DB credentials as artifact
         if: ${{ inputs.csp == 'azure' }}

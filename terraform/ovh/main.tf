@@ -13,7 +13,7 @@ resource "ovh_cloud_project_network_private" "vnet" {
   regions      = [var.ovh_region]
 }
 
-# Subnet 1: Ingress (for ingress controllers or load balancer)
+# Subnet 1: Ingress
 resource "ovh_cloud_project_network_private_subnet" "ingress" {
   service_name = var.ovh_project_id
   network_id   = ovh_cloud_project_network_private.vnet.id
@@ -129,30 +129,4 @@ resource "ovh_cloud_project_database_database" "pgsqldb_database" {
   engine      = data.ovh_cloud_project_database.pgsqldb_data.engine
   cluster_id  = data.ovh_cloud_project_database.pgsqldb_data.id
   name        = "dummydb"
-}
-
-# Outputs
-output "kubeconfig" {
-  value     = ovh_cloud_project_kube.cluster.kubeconfig
-  sensitive = true
-}
-
-output "object_storage_name" {
-  value = ovh_cloud_project_storage.storage.name
-}
-
-output "pgsql_host" {
-  value = data.ovh_cloud_project_database.pgsqldb_data.endpoints[0].domain
-}
-output "pgsql_port" {
-  value = data.ovh_cloud_project_database.pgsqldb_data.endpoints[0].port
-}
-output "pgsql_uri" {
-  value = data.ovh_cloud_project_database.pgsqldb_data.endpoints[0].uri
-}
-output "pgsql_dbname" {
-  value = ovh_cloud_project_database_database.pgsqldb_database.name
-}
-output "pgsql_cluster_id" {
-  value = ovh_cloud_project_database.pgsqldb.id
 }

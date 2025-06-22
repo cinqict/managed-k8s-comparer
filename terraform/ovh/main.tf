@@ -1,12 +1,3 @@
-terraform {
-  required_providers {
-    ovh = {
-      source  = "ovh/ovh"
-      version = ">= 0.44.0"
-    }
-  }
-}
-
 resource "ovh_cloud_project_network_private" "vnet" {
   service_name = var.ovh_project_id
   name         = var.vnet_name

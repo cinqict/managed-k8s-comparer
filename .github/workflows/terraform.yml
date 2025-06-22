@@ -34,7 +34,7 @@ jobs:
 
       - name: Terraform Init
         run: |
-          terraform -chdir=terraform init --reconfigure \
+          terraform -chdir=terraform/${{ inputs.csp }} init --reconfigure \
             -backend-config="resource_group_name=rg-noudsavenije-devops" \
             -backend-config="storage_account_name=noudstfbackend" \
             -backend-config="container_name=${{ inputs.csp }}tfstate" \

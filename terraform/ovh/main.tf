@@ -28,7 +28,7 @@ resource "ovh_cloud_project_network_private_subnet" "app" {
   no_gateway   = false
 }
 
-# Subnet 3: Data (PostgreSQL, etc.)
+# Subnet 3: Data (PostgreSQL, etc.)Rqa
 resource "ovh_cloud_project_network_private_subnet" "data" {
   service_name = var.ovh_project_id
   network_id   = ovh_cloud_project_network_private.vnet.id

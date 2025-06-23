@@ -124,3 +124,7 @@ output "pgsql_password" {
 output "pgsql_server_name" {
   value = azurerm_postgresql_flexible_server.main.name
 }
+
+output "pgsql_port" {
+  value = azurerm_postgresql_flexible_server.main.port
+}

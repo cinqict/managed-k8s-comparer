@@ -52,35 +52,35 @@ resource "ovh_cloud_project_storage" "storage" {
 
 resource "ovh_cloud_project_gateway" "gateway" {
   service_name = var.ovh_project_id
-  name       = var.gateway_name
-  model      = var.gateway_model
-  region     = var.ovh_region
-  network_id = local.vnet_openstack_id
-  subnet_id  = ovh_cloud_project_network_private_subnet.ingress.id
+  name         = var.gateway_name
+  model        = var.gateway_model
+  region       = var.ovh_region
+  network_id   = local.vnet_openstack_id
+  subnet_id    = ovh_cloud_project_network_private_subnet.ingress.id
 }
 
 # Update Kubernetes Cluster resource and add node pool
 resource "ovh_cloud_project_kube" "cluster" {
-  service_name = var.ovh_project_id
-  name         = var.k8s_cluster_name
-  region       = var.ovh_region
-  version      = var.k8s_version
+  service_name       = var.ovh_project_id
+  name               = var.k8s_cluster_name
+  region             = var.ovh_region
+  version            = var.k8s_version
   private_network_id = local.vnet_openstack_id
-  nodes_subnet_id = ovh_cloud_project_network_private_subnet.app.id
+  nodes_subnet_id    = ovh_cloud_project_network_private_subnet.app.id
   private_network_configuration {
-      default_vrack_gateway              = ""
-      private_network_routing_as_default = false
+    default_vrack_gateway              = ""
+    private_network_routing_as_default = false
   }
   depends_on = [
     ovh_cloud_project_network_private_subnet.app
-  ] 
+  ]
 }
 
 resource "ovh_cloud_project_kube_nodepool" "default" {
   service_name  = ovh_cloud_project_kube.cluster.service_name
-  kube_id      = ovh_cloud_project_kube.cluster.id
-  name         = var.k8s_nodepool_name
-  flavor_name  = var.k8s_nodepool_flavor
+  kube_id       = ovh_cloud_project_kube.cluster.id
+  name          = var.k8s_nodepool_name
+  flavor_name   = var.k8s_nodepool_flavor
   desired_nodes = var.k8s_nodepool_desired_nodes
   max_nodes     = var.k8s_nodepool_max_nodes
   min_nodes     = var.k8s_nodepool_min_nodes
@@ -88,17 +88,17 @@ resource "ovh_cloud_project_kube_nodepool" "default" {
 }
 
 resource "ovh_cloud_project_database" "pgsqldb" {
-  service_name  = var.ovh_project_id
-  description   = var.pgsql_description
-  engine        = "postgresql"
-  version       = var.pgsql_version
-  plan          = var.pgsql_plan
+  service_name = var.ovh_project_id
+  description  = var.pgsql_description
+  engine       = "postgresql"
+  version      = var.pgsql_version
+  plan         = var.pgsql_plan
   nodes {
-    region      = var.ovh_region_short
-    network_id  = local.vnet_openstack_id
-    subnet_id   = ovh_cloud_project_network_private_subnet.data.id
+    region     = var.ovh_region_short
+    network_id = local.vnet_openstack_id
+    subnet_id  = ovh_cloud_project_network_private_subnet.data.id
   }
-  flavor        = var.pgsql_flavor
+  flavor = var.pgsql_flavor
 
   dynamic "ip_restrictions" {
     for_each = var.pgsql_ip_restrictions
@@ -117,7 +117,7 @@ data "ovh_cloud_project_database" "pgsqldb_data" {
 
 resource "ovh_cloud_project_database_database" "pgsqldb_database" {
   service_name = var.ovh_project_id
-  engine      = data.ovh_cloud_project_database.pgsqldb_data.engine
-  cluster_id  = data.ovh_cloud_project_database.pgsqldb_data.id
-  name        = "dummydb"
+  engine       = data.ovh_cloud_project_database.pgsqldb_data.engine
+  cluster_id   = data.ovh_cloud_project_database.pgsqldb_data.id
+  name         = "dummydb"
 }

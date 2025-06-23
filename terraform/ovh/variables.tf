@@ -183,7 +183,7 @@ variable "pgsql_flavor" {
 variable "pgsql_ip_restrictions" {
   description = "List of IP restrictions for PostgreSQL. Each object must have 'ip' and 'description'."
   type = list(object({
-    ip = string
+    ip          = string
     description = string
   }))
   default = [

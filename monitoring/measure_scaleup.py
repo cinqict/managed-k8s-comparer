@@ -1,5 +1,9 @@
 from kubernetes import client, config
-from datetime import datetime
+from datetime import datetime, timezone
+import json
+import os
+
+RESULTS_FILE = "monitoring/results.json"
 
 # Load kubeconfig (use config.load_incluster_config() if running inside cluster)
 config.load_kube_config()
@@ -59,6 +63,32 @@ first_pod_time = first_pod.status.start_time
 print(f"First pod scheduled on new node at: {first_pod_time}")
 
 # Calculate durations
-print(f"Time from scale-up to node Ready: {node_ready_time - scale_up_time}")
-print(f"Time from node Ready to first pod scheduled: {first_pod_time - node_ready_time}")
-print(f"Total time from scale-up to first pod scheduled: {first_pod_time - scale_up_time}")
+dur_scaleup_to_ready = (node_ready_time - scale_up_time).total_seconds()
+dur_ready_to_pod = (first_pod_time - node_ready_time).total_seconds()
+dur_scaleup_to_pod = (first_pod_time - scale_up_time).total_seconds()
+print(f"Time from scale-up to node Ready: {dur_scaleup_to_ready}")
+print(f"Time from node Ready to first pod scheduled: {dur_ready_to_pod}")
+print(f"Total time from scale-up to first pod scheduled: {dur_scaleup_to_pod}")
+
+# Write to results.json
+if os.path.exists(RESULTS_FILE):
+    with open(RESULTS_FILE, "r") as f:
+        try:
+            results = json.load(f)
+        except Exception:
+            results = {}
+else:
+    results = {}
+
+results["scaleup"] = {
+    "scaleup_triggered": scale_up_time.isoformat(),
+    "node_ready": node_ready_time.isoformat() if node_ready_time else None,
+    "first_pod": first_pod_time.isoformat(),
+    "node_name": node_name,
+    "dur_scaleup_to_ready": dur_scaleup_to_ready,
+    "dur_ready_to_pod": dur_ready_to_pod,
+    "dur_scaleup_to_pod": dur_scaleup_to_pod
+}
+
+with open(RESULTS_FILE, "w") as f:
+    json.dump(results, f, indent=2)

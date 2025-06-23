@@ -43,19 +43,38 @@ jobs:
       - name: Terraform Plan
         run: terraform -chdir=terraform/${{ inputs.csp }} plan
 
+      - name: Download benchmark results artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: benchmark-results
+          path: .
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Record Terraform apply start time
+        run: python monitoring/record_apply_start.py
+
       - name: Terraform Apply
         run: |
           start=$(date +%s)
           terraform -chdir=terraform/${{ inputs.csp }} apply -auto-approve
           end=$(date +%s)
           duration=$((end - start))
-          echo "Terraform apply duration: ${duration} seconds" > apply_duration.txt
+          echo $start > apply_start.txt
+          echo $end > apply_end.txt
+          echo $duration > apply_duration.txt
 
-      - name: Upload apply duration as artifact
+      - name: Record Terraform apply end time and duration
+        run: python monitoring/record_apply_end.py
+
+      - name: Upload updated benchmark results artifact
         uses: actions/upload-artifact@v4
         with:
-          name: apply-duration
-          path: apply_duration.txt
+          name: benchmark-results
+          path: results.json
 
       - name: Export kubeconfig
         run: terraform -chdir=terraform/${{ inputs.csp }} output -raw kubeconfig > kubeconfig.yaml

@@ -51,9 +51,27 @@ jobs:
           kubectl --kubeconfig=kubeconfig.yaml apply -f ./dummy-app/argocd-app.yaml
       - name: Restart Dummy App Deployment
         run: |
-          sleep 10
+          sleep 5
           kubectl --kubeconfig=kubeconfig.yaml -n default rollout restart deployment dummy-app
+
+      - name: Download benchmark results artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: benchmark-results
+          path: .
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Record external_ip start time
+        run: python monitoring/record_external_ip_start.py
+      - name: Upload updated benchmark results artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results
+          path: results.json
 
       - name: Deploy Pod AutoScaler
         run: |
           kubectl --kubeconfig=kubeconfig.yaml apply -f ./dummy-app/pod-autoscaler.yaml
+

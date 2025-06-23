@@ -52,6 +52,7 @@ resource "azurerm_postgresql_flexible_server" "main" {
   delegated_subnet_id    = azurerm_subnet.db.id
   zone                   = "1"
   private_dns_zone_id    = azurerm_private_dns_zone.postgres.id
+  public_network_access_enabled = false
 }
 
 resource "azurerm_postgresql_flexible_server_database" "dummydb" {

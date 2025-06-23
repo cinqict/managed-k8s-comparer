@@ -126,5 +126,5 @@ output "pgsql_server_name" {
 }
 
 output "pgsql_port" {
-  value = azurerm_postgresql_flexible_server.main.port
+  value = "5432" #azurerm_postgresql_flexible_server.main.port ## NOT SUPPORTED IN AZURE
 }

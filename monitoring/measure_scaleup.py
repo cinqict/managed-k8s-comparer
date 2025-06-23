@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 import json
 import os
 
-RESULTS_FILE = "monitoring/results.json"
+RESULTS_FILE = "results.json"
 
 # Load kubeconfig (use config.load_incluster_config() if running inside cluster)
 config.load_kube_config()

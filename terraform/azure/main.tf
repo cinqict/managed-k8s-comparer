@@ -50,7 +50,7 @@ resource "azurerm_postgresql_flexible_server" "main" {
   storage_mb             = 32768
   sku_name               = "B_Standard_B1ms"
   delegated_subnet_id    = azurerm_subnet.db.id
-  zone                   = "1"
+  zone                   = "3" # Only available zone in our Subscription
   private_dns_zone_id    = azurerm_private_dns_zone.postgres.id
   public_network_access_enabled = false
 }

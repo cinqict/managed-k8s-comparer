@@ -4,7 +4,7 @@ import time
 from datetime import datetime, timezone
 import subprocess
 
-RESULTS_FILE = "monitoring/results.json"
+RESULTS_FILE = "results.json"
 SERVICE_NAME = os.environ.get("SERVICE_NAME", "dummy-app")
 KUBECONFIG = os.environ.get("KUBECONFIG", "kubeconfig.yaml")
 NAMESPACE = os.environ.get("NAMESPACE", "default")

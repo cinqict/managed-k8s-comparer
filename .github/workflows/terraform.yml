@@ -51,6 +51,12 @@ jobs:
           duration=$((end - start))
           echo "Terraform apply duration: ${duration} seconds" > apply_duration.txt
 
+      - name: Upload apply duration as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: apply-duration
+          path: apply_duration.txt
+
       - name: Export kubeconfig
         run: terraform -chdir=terraform/${{ inputs.csp }} output -raw kubeconfig > kubeconfig.yaml
 

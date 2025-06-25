@@ -1,0 +1,28 @@
+name: Init Results
+
+on:
+  workflow_call:
+    inputs:
+      csp:
+        required: true
+        type: string
+
+jobs:
+  init_results:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Initialize results.json
+        env:
+          CSP: ${{ inputs.csp }}
+        run: python monitoring/init_results_json.py
+      - name: Upload benchmark results artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results-stub
+          path: results.json

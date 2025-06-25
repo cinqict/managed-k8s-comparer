@@ -1,0 +1,36 @@
+name: Measure Scaleup
+
+on:
+  workflow_call:
+
+jobs:
+  measure_scaleup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Download benchmark results artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: benchmark-results-ip-2
+          path: .
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Install dependencies
+        run: pip install kubernetes
+      - name: Download kubeconfig artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: kubeconfig
+          path: .
+      - name: Set KUBECONFIG env var
+        run: echo "KUBECONFIG=$GITHUB_WORKSPACE/kubeconfig.yaml" >> $GITHUB_ENV
+      - name: Run scale-up measurement script
+        run: python monitoring/measure_scaleup.py
+      - name: Upload updated benchmark results artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results
+          path: results.json

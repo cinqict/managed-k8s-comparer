@@ -23,23 +23,9 @@ on:
 
 jobs:
   init_results:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.x'
-      - name: Initialize results.json
-        env:
-          CSP: ${{ github.event.inputs.csp }}
-        run: python monitoring/init_results_json.py
-      - name: Upload benchmark results artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: benchmark-results-stub
-          path: results.json
+    uses: ./.github/workflows/init-results-template.yml
+    with:
+      csp: ${{ github.event.inputs.csp }}
 
   infra:
     uses: ./.github/workflows/terraform.yml
@@ -70,30 +56,8 @@ jobs:
 
   measure_external_ip:
     needs: app_ci
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Download kubeconfig artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: kubeconfig
-      - name: Download benchmark results artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: benchmark-results-ip-1
-          path: .
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.x'
-      - name: Run external IP measurement script
-        run: python monitoring/measure_external_ip.py
-      - name: Upload updated benchmark results artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: benchmark-results-ip-2
-          path: results.json
+    uses: ./.github/workflows/measure-external-ip-template.yml
+    secrets: inherit
 
   locust:
     needs: app_ci
@@ -105,32 +69,5 @@ jobs:
   measure_scaleup:
     needs: locust
     if: ${{ github.event.inputs.demo_mode == 'false' }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Download benchmark results artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: benchmark-results-ip-2
-          path: .
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.x'
-      - name: Install dependencies
-        run: pip install kubernetes
-      - name: Download kubeconfig artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: kubeconfig
-          path: .
-      - name: Set KUBECONFIG env var
-        run: echo "KUBECONFIG=$GITHUB_WORKSPACE/kubeconfig.yaml" >> $GITHUB_ENV
-      - name: Run scale-up measurement script
-        run: python monitoring/measure_scaleup.py
-      - name: Upload updated benchmark results artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: benchmark-results
-          path: results.json
+    uses: ./.github/workflows/measure-scaleup-template.yml
+    secrets: inherit

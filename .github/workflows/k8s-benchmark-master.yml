@@ -51,7 +51,7 @@ jobs:
   #   secrets: inherit
   
   app_ci:
-    needs: monitoring
+    needs: metrics_server
     uses: ./.github/workflows/app-ci-template.yml
     secrets: inherit
 

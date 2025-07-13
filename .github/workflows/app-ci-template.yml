@@ -2,19 +2,35 @@ name: 'Build and Deploy Dummy App'
 on:
   workflow_call:
 jobs:
+  check-secret:
+    runs-on: ubuntu-latest
+    outputs:
+      key-defined: ${{ steps.key-defined.outputs.defined }}
+    steps:
+        - id: key-defined
+          env:
+              USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+              TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+          if: "${{ env.USERNAME != '' && env.TOKEN != '' }}"
+          run: echo "::set-output name=defined::true"
   app_ci:
+    needs: check-secret
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        
       - name: Set up Docker Buildx
+        if: needs.check-secret.outputs.key-defined == 'true'
         uses: docker/setup-buildx-action@v3
       - name: Log in to DockerHub
+        if: needs.check-secret.outputs.key-defined == 'true'
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Build and Push Dummy App Image
+        if: needs.check-secret.outputs.key-defined == 'true'
         uses: docker/build-push-action@v5
         with:
           context: ./dummy-app
@@ -46,7 +62,11 @@ jobs:
             --from-file=dbname=pgsql_dbname.txt
       - name: Set image source in k8s-deployment.yaml
         run: |
-          sed -i 's|{{DOCKERHUB_USER}}/dummy-app:latest|${{ secrets.DOCKERHUB_USERNAME }}/dummy-app:latest|' ./dummy-app/k8s-deployment.yaml
+          if [ -n "${{ secrets.DOCKERHUB_USERNAME }}" ] && [ -n "${{ secrets.DOCKERHUB_TOKEN }}" ]; then
+            sed -i 's|{{DOCKERHUB_USER}}/dummy-app:latest|${{ secrets.DOCKERHUB_USERNAME }}/dummy-app:latest|' ./dummy-app/k8s-deployment.yaml
+          else
+            sed -i 's|{{DOCKERHUB_USER}}/dummy-app:latest|nsavenije/dummy-app:latest|' ./dummy-app/k8s-deployment.yaml
+          fi
       - name: Deploy Dummy App via ArgoCD
         run: |
           kubectl --kubeconfig=kubeconfig.yaml -n argocd delete application dummy-app --ignore-not-found

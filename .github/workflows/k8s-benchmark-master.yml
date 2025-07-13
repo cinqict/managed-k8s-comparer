@@ -45,11 +45,6 @@ jobs:
     uses: ./.github/workflows/monitoring-template.yml
     secrets: inherit
 
-  # argocd:
-  #   needs: metrics_server
-  #   uses: ./.github/workflows/argocd-template.yml
-  #   secrets: inherit
-  
   app_ci:
     needs: metrics_server
     uses: ./.github/workflows/app-ci-template.yml

@@ -8,6 +8,11 @@ on:
         required: false
         default: false
         type: boolean
+      remove_cloud_resources:
+        description: 'Remove cloud resources after run'
+        required: false
+        default: true
+        type: boolean
       csp:
         description: 'Select Cloud Service Provider'
         required: true
@@ -71,4 +76,10 @@ jobs:
     needs: locust
     if: ${{ github.event.inputs.demo_mode == 'false' }}
     uses: ./.github/workflows/measure-scaleup-template.yml
+    secrets: inherit
+
+  cleanup:
+    if: ${{ github.event.inputs.remove_cloud_resources == 'true' }}
+    needs: measure_scaleup
+    uses: ./.github/workflows/terraform-${{ github.event.inputs.csp }}-destroy.yml
     secrets: inherit

@@ -67,6 +67,8 @@ jobs:
           else
             sed -i 's|{{DOCKERHUB_USER}}/dummy-app:latest|nsavenije/dummy-app:latest|' ./dummy-app/k8s-deployment.yaml
           fi
+      - name: Verify image replacement in k8s-deployment.yaml
+        run: grep 'image:' ./dummy-app/k8s-deployment.yaml
       - name: Deploy Dummy App via ArgoCD
         run: |
           kubectl --kubeconfig=kubeconfig.yaml -n argocd delete application dummy-app --ignore-not-found

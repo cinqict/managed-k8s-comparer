@@ -36,7 +36,7 @@ jobs:
     secrets: inherit
 
   monitoring:
-    if: ${{ github.event.inputs.demo_mode }}
+    if: ${{ github.event.inputs.demo_mode == 'true' }}
     needs: metrics_server
     uses: ./.github/workflows/monitoring-template.yml
     secrets: inherit

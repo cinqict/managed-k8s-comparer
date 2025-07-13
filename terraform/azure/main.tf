@@ -78,12 +78,12 @@ resource "azurerm_kubernetes_cluster" "main" {
 
   default_node_pool {
     name                 = var.aks_node_pool_name
-    node_count           = var.aks_node_count
     vm_size              = var.aks_vm_size
     vnet_subnet_id       = azurerm_subnet.aks.id
     min_count            = var.aks_min_count
     max_count            = var.aks_max_count
     auto_scaling_enabled = var.aks_auto_scaling_enabled
+    node_count           = var.aks_auto_scaling_enabled ? null : var.aks_node_count
   }
 
   network_profile {

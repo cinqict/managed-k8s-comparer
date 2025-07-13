@@ -12,7 +12,7 @@ jobs:
               USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
               TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
           if: "${{ env.USERNAME != '' && env.TOKEN != '' }}"
-          run: echo "::set-output name=defined::true"
+          run: echo "DEFINED=true" >> $GITHUB_OUTPUT
   app_ci:
     needs: check-secret
     runs-on: ubuntu-latest

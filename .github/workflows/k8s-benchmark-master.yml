@@ -40,7 +40,7 @@ jobs:
     secrets: inherit
 
   monitoring:
-    if: ${{ github.event.inputs.demo_mode == 'true' }}
+    if: ${{ github.event.inputs.demo_mode }}
     needs: metrics_server
     uses: ./.github/workflows/monitoring-template.yml
     secrets: inherit
@@ -64,6 +64,6 @@ jobs:
 
   measure_scaleup:
     needs: locust
-    if: ${{ github.event.inputs.demo_mode == 'false' }}
+    if: ${{ !github.event.inputs.demo_mode }}
     uses: ./.github/workflows/measure-scaleup-template.yml
     secrets: inherit

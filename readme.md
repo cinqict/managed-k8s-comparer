@@ -18,7 +18,7 @@ This repository is used to compare the performance of managed Kubernetes service
    Benchmark results will be available as workflow artifacts for download and comparison.
 
 ## Prerequisites
-   - Setup Resource Group, Storage Account & Storage Container.
+   - Setup Resource Group, Storage Account and a Storage Container for each CSP.
    - Setup App Registration with the following permissions:
      - Storage Blob data contributor on the Storage Account
      - Contributor on the Resource Group

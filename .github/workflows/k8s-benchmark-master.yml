@@ -17,10 +17,6 @@ on:
           - azure
           - ovh
           - aws
-  push:
-    branches:
-      - master
-      - main
 
 jobs:
   init_results:

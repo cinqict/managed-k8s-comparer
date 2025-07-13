@@ -24,7 +24,7 @@ jobs:
         with:
           version: 'latest'
 
-      - name: Wait for Kubernetes API (Linux)
+      - name: Wait for Kubernetes API
         run: |
           for i in {1..30}; do
             kubectl --kubeconfig=kubeconfig.yaml get nodes && exit 0 || sleep 20

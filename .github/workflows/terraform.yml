@@ -54,9 +54,6 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Record Terraform apply start time
-        run: python monitoring/record_apply_start.py
-
       - name: Terraform Apply
         run: |
           start=$(date +%s)
@@ -68,7 +65,7 @@ jobs:
           echo $duration > apply_duration.txt
 
       - name: Record Terraform apply end time and duration
-        run: python monitoring/record_apply_end.py
+        run: python monitoring/record_apply.py
 
       - name: Upload updated benchmark results artifact
         uses: actions/upload-artifact@v4

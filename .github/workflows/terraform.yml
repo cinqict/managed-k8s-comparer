@@ -14,15 +14,17 @@ jobs:
     runs-on: ubuntu-latest
     env:
       # Common env vars (add more if needed)
-      TF_VAR_ovh_endpoint: ${{ inputs.csp == 'ovh' && secrets.OVH_ENDPOINT || '' }}
+      TF_VAR_ovh_endpoint: ${{ inputs.csp == 'ovh' && vars.OVH_ENDPOINT || '' }}
       TF_VAR_ovh_application_key: ${{ inputs.csp == 'ovh' && secrets.OVH_APPLICATION_KEY || '' }}
       TF_VAR_ovh_application_secret: ${{ inputs.csp == 'ovh' && secrets.OVH_APPLICATION_SECRET || '' }}
       TF_VAR_ovh_consumer_key: ${{ inputs.csp == 'ovh' && secrets.OVH_CONSUMER_KEY || '' }}
       TF_VAR_ovh_project_id: ${{ inputs.csp == 'ovh' && secrets.OVH_PROJECT_ID || '' }}
+      TF_VAR_resource_group_name: ${{ vars.RESOURCE_GROUP_NAME }}
       ARM_CLIENT_ID: ${{ secrets.AZ_CLIENT_ID }}
       ARM_CLIENT_SECRET: ${{ secrets.AZ_CLIENT_SECRET }}
-      ARM_SUBSCRIPTION_ID: ${{ secrets.AZ_SUBSCRIPTION_ID }}
-      ARM_TENANT_ID: ${{ secrets.AZ_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ vars.AZ_SUBSCRIPTION_ID }}
+      ARM_TENANT_ID: ${{ vars.AZ_TENANT_ID }}
+      
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -35,8 +37,8 @@ jobs:
       - name: Terraform Init
         run: |
           terraform -chdir=terraform/${{ inputs.csp }} init --reconfigure \
-            -backend-config="resource_group_name=rg-noudsavenije-devops" \
-            -backend-config="storage_account_name=noudstfbackend" \
+            -backend-config="resource_group_name=${{ vars.RESOURCE_GROUP_NAME }}" \
+            -backend-config="storage_account_name=${{ vars.STORAGE_ACCOUNT_NAME }}" \
             -backend-config="container_name=${{ inputs.csp }}tfstate" \
             -backend-config="key=terraform.tfstate"
 

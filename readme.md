@@ -1,44 +1,49 @@
-Blog Post Outline:
+# Managed Kubernetes Comparer
 
-Introduction: Purpose, what is a “production ready” managed Kubernetes cluster, and why compare OVH Cloud, Azure AKS, and AWS EKS.
-Prerequisites: What you need (accounts, CLI tools, permissions).
-Terraform Remote State Management:
-- Why remote state is important (collaboration, safety, automation).
-- How to configure remote state for each provider:
-  - Azure: Storage Account backend example.
-  - AWS: S3 + DynamoDB backend example.
-  - OVH: S3-compatible Object Storage backend example.
-- Storing backend credentials securely in Azure DevOps and GitHub Actions (using secrets/variables).
-- Example backend blocks for each provider.
-Cluster Creation:
-Step-by-step for each provider (OVH, Azure, AWS).
-Note any differences in setup, configuration, and available options.
-Deployment Time Comparison:
-Measure and record the time from cluster creation command to ready state.
-Cost Comparison:
-Compare pricing for similar node types and configurations.
-Feature Comparison:
-Networking, autoscaling, security, monitoring, integrations, etc.
-RBAC & Access Management for Collaboration:
-- Azure: Using Entra ID groups to provide RBAC access to landing zones for DevOps engineers.
-- AWS: Using IAM groups/roles and SSO for RBAC access to AWS web console and resources.
-- OVH: Using OVH IAM (Identity & Access Management) to assign roles/groups for RBAC access.
-- Best practices for enabling team collaboration securely.
-Pipeline Identity & Permissions (NPA for Terraform):
-- Azure: Using App Registration (Service Principal) for Terraform pipeline identity.
-- AWS: Using IAM user/role with programmatic access for Terraform pipeline.
-- OVH: Using API credentials (application keys) for Terraform pipeline.
-- Security considerations and least privilege principle.
-Does OVH Cloud offer all the features you expect?
-Conclusion: Summary, recommendations, and your experience.
-Practical Steps:
+This repository is used to compare the performance of managed Kubernetes services from different Cloud Service Providers (CSPs), currently implemented are Azure and OVHcloud. It automates the deployment of a dummy application, runs benchmarks, and collects results for analysis.
 
-Prepare scripts or CLI commands for creating clusters on each platform (using PowerShell, Azure CLI, AWS CLI, and OVH CLI/API).
-Define what “production ready” means for you (e.g., private networking, autoscaling, monitoring, RBAC, etc.).
-Time each deployment (use PowerShell’s Measure-Command or similar).
-Gather pricing info from each provider’s calculator for the same configuration.
-Document any missing features or differences.
-Would you like example scripts for cluster creation on each platform, or help with structuring the blog post in more detail?
+## Usage
 
-kubectl port-forward svc/argocd-server -n argocd 8080:443
-kubectl port-forward svc/grafana -n argocd 3000:443
+1. **Configure Secrets:**  
+   Before running the workflows, ensure all required secrets are set in your repository or organization settings (GitHub → Settings → Secrets and variables → Actions).
+
+2. **Run the CI/CD Pipeline:**  
+   The K8s Benchmark Master Flow GitHub Actions workflow will:
+   - Provision a Kubernetes cluster
+   - Build and push a Docker image (if credentials are provided)
+   - Deploy the dummy app to the target Kubernetes cluster
+   - Run benchmarks and collect results
+
+3. **Analyze Results:**  
+   Benchmark results will be available as workflow artifacts for download and comparison.
+
+## Prerequisites
+   - Setup Resource Group, Storage Account & Storage Container.
+   - Setup App Registration with the following permissions:
+     - Storage Blob data contributor on the Storage Account
+     - Contributor on the Resource Group
+   - Create OVH Cloud account at https://www.ovh.com/auth
+   - Create project (public cloud -> create new project)
+
+### Required Secrets
+
+| Secret Name              | Description                                 | Required    | Where to Get It                                           |
+|--------------------------|---------------------------------------------|-------------|-----------------------------------------------------------|
+| `DOCKERHUB_USERNAME`     | Docker Hub username                         | No          | [Docker Hub Account Settings](https://hub.docker.com/)    |
+| `DOCKERHUB_TOKEN`        | Docker Hub access token/password            | No          | [Docker Hub Security Settings](https://hub.docker.com/)   |
+| `AZ_CLIENT_ID`           | Azure Service Principal Client ID           | Yes         | Azure Portal → Azure AD → App registrations               |
+| `AZ_CLIENT_SECRET`       | Azure Service Principal Client Secret       | Yes         | Azure Portal → Azure AD → App registrations               |
+| `OVH_APPLICATION_KEY`    | OVH API application key                     | Yes         | [OVH API Credentials](https://www.ovh.com/auth/api/createToken?GET=/*&POST=/*&PUT=/*&DELETE=/*)     |
+| `OVH_APPLICATION_SECRET` | OVH API application key                     | Yes         | [OVH API Credentials](https://www.ovh.com/auth/api/createToken?GET=/*&POST=/*&PUT=/*&DELETE=/*)     |
+| `OVH_CONSUMER_KEY`       | OVH API consumer key                        | Yes         | [OVH API Credentials](https://www.ovh.com/auth/api/createToken?GET=/*&POST=/*&PUT=/*&DELETE=/*)     |
+| `OVH_PROJECT_ID`         | OVH Public Cloud project ID                 | Yes         | OVHcloud Control Panel → Public Cloud → Project Info      |
+
+### Required Variables
+
+| Secret Name           | Description                                 | Required    | Where to Get It                                           |
+|-----------------------|---------------------------------------------|-------------|-----------------------------------------------------------|
+| `RESOURCE_GROUP_NAME` | Existing RG name for TF backend             | Yes         | Azure Portal → Resource Groups                            |
+| `STORAGE_ACCOUNT_NAME`| Existing SA name for TF backend             | Yes         | Azure Portal → Resource Groups → Storage Account          |
+| `AZ_SUBSCRIPTION_ID`  | Azure Subscription ID                       | Yes         | Azure Portal → Subscriptions                              |
+| `AZ_TENANT_ID`        | Azure Tenant ID                             | Yes         | Azure Portal → Azure Entra ID                             |
+| `OVH_ENDPOINT`        | OVH API endpoint (e.g., ovh-eu)             | Yes         | [OVH API Docs](https://docs.ovh.com/gb/en/api/)           |

@@ -69,16 +69,9 @@ jobs:
           fi
       - name: Verify image replacement in k8s-deployment.yaml
         run: grep 'image:' ./dummy-app/k8s-deployment.yaml
-      - name: Deploy Dummy App via ArgoCD
+      - name: Deploy Dummy App to Kubernetes
         run: |
-          kubectl --kubeconfig=kubeconfig.yaml -n argocd delete application dummy-app --ignore-not-found
-          sleep 5
-          kubectl --kubeconfig=kubeconfig.yaml apply -f ./dummy-app/argocd-app.yaml
-      - name: Restart Dummy App Deployment
-        run: |
-          sleep 10
-          kubectl --kubeconfig=kubeconfig.yaml -n default rollout restart deployment dummy-app
-
+          kubectl --kubeconfig=kubeconfig.yaml apply -f ./dummy-app/k8s-deployment.yaml
       - name: Download benchmark results artifact
         uses: actions/download-artifact@v4
         with:

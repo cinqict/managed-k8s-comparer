@@ -100,24 +100,24 @@ I ran it once for both CSPs (OVH & Azure) and got the following results:
 {
   "csp": "ovh",
   "terraform_apply": {
-    "start": "2025-07-13T18:10:11+00:00",
-    "end": "2025-07-13T18:18:25+00:00",
-    "duration_seconds": 494
+    "start": "2025-07-13T19:08:32+00:00",
+    "end": "2025-07-13T19:15:14+00:00",
+    "duration_seconds": 402
   },
   "external_ip": {
-    "start": "2025-07-13T18:19:28.661987+00:00",
-    "end": "2025-07-13T18:23:39.364339+00:00",
-    "duration_seconds": 250,
-    "ip": "51.77.17.242"
+    "start": "2025-07-13T19:16:14.285706+00:00",
+    "end": "2025-07-13T19:19:18.992363+00:00",
+    "duration_seconds": 184,
+    "ip": "37.59.24.5"
   },
   "scaleup": {
-    "scaleup_triggered": "2025-07-13T18:01:09+00:00",
-    "node_ready": "2025-07-13T18:04:28+00:00",
-    "first_pod": "2025-07-13T18:04:25+00:00",
-    "node_name": "default-node-0e4fb6",
-    "dur_scaleup_to_ready": 199.0,
-    "dur_ready_to_pod": -3.0,
-    "dur_scaleup_to_pod": 196.0
+    "scaleup_triggered": "2025-07-13T19:22:01+00:00",
+    "node_ready": "2025-07-13T19:24:18+00:00",
+    "first_pod": "2025-07-13T19:24:16+00:00",
+    "node_name": "default-node-c925e7",
+    "dur_scaleup_to_ready": 137.0,
+    "dur_ready_to_pod": -2.0,
+    "dur_scaleup_to_pod": 135.0
   }
 }
 ```
@@ -130,11 +130,11 @@ I ran it once for both CSPs (OVH & Azure) and got the following results:
 
 | Metric                         | Azure | OVH    |
 |--------------------------------|-------|--------|
-| Terraform apply duration (s)   | 494   | TBD    |
-| External IP availability (s)   | 20    | TBD    |
-| Scaleup to ready (s)           | 54.0  | 199.0  |
-| Ready to pod (s)               | 0.0   | -3.0   |
-| Scaleup to pod (s)             | 54.0  | 196.0  |
+| Terraform apply duration (s)   | 494   | 402    |
+| External IP availability (s)   | 20    | 184    |
+| Scaleup to ready (s)           | 54.0  | 137.0  |
+| Ready to pod (s)               | 0.0   | -2.0   |
+| Scaleup to pod (s)             | 54.0  | 135.0  |
 
 ### Metrics Explained
 
@@ -158,3 +158,5 @@ These metrics help compare the responsiveness and provisioning speed of managed 
 ## Cleaning Up
 Don't forget to remove your provisioned resources once you are done.
 For this the Workflows `Terraform OVH Destroy` and `Terraform Azure Destroy` are provided.
+
+**NOTE** For some reason the terraform destroy command for OVH can't destroy private networks. Remove it manually if it bothers you.

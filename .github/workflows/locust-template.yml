@@ -42,9 +42,18 @@ jobs:
         if: ${{ !inputs.demo_mode }}
         run: |
           pip install locust
-          export APP_IP=$(kubectl get svc dummy-app -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+          # Wait up to 10 minutes for the external IP
+          for i in {1..60}; do
+            APP_IP=$(kubectl get svc dummy-app -o jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null)
+            if [ -n "$APP_IP" ]; then
+              echo "Found external IP: $APP_IP"
+              break
+            fi
+            echo "Waiting for external IP... ($i/60)"
+            sleep 10
+          done
           if [ -z "$APP_IP" ]; then
-            echo "ERROR: No external IP found for dummy-app-service. Exiting."
+            echo "ERROR: No external IP found for dummy-app-service after 10 minutes. Exiting."
             exit 1
           fi
           locust -f dummy-app/locustfile.py --headless -u 400 -r 10 -t 300s --host http://$APP_IP --csv locust_results --exit-code-on-error 0

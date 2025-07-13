@@ -47,7 +47,7 @@ def main():
     start_time = time.time()
     ip = get_external_ip()
     while not ip:
-        time.sleep(5)
+        time.sleep(1)
         ip = get_external_ip()
     end_time = time.time()
     end_iso = now_utc()

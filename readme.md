@@ -47,3 +47,114 @@ This repository is used to compare the performance of managed Kubernetes service
 | `AZ_SUBSCRIPTION_ID`  | Azure Subscription ID                       | Yes         | Azure Portal → Subscriptions                              |
 | `AZ_TENANT_ID`        | Azure Tenant ID                             | Yes         | Azure Portal → Azure Entra ID                             |
 | `OVH_ENDPOINT`        | OVH API endpoint (e.g., ovh-eu)             | Yes         | [OVH API Docs](https://docs.ovh.com/gb/en/api/)           |
+
+## Demo mode
+A demo mode is included which can be used by selecting the checkbox on the workflow during a manual run. This mode skips the automatic load test and install grafana on your cluster.
+You can access it by following these steps:
+ 1. Download Kubeconfig artifact from the workflow
+ 2. Connect to the cluster
+ 3. Run `kubectl port-forward svc/grafana -n monitoring 3000:80`
+ 4. Open a browser and go to http://localhost:3000
+ 5. Log in using admin admin
+ 6. Click on the `+` on the top right and import dashboard
+ 7. Import 315 or 1860
+
+## Results
+
+I ran it once for both CSPs (OVH & Azure) and got the following results:
+
+<table>
+  <tr>
+    <td>
+
+```json
+{
+  "csp": "azure",
+  "terraform_apply": {
+    "start": "2025-06-23T13:17:06+00:00",
+    "end": "2025-06-23T13:25:20+00:00",
+    "duration_seconds": 494
+  },
+  "external_ip": {
+    "start": "2025-06-23T13:29:10.648931+00:00",
+    "end": "2025-06-23T13:29:31.389670+00:00",
+    "duration_seconds": 20,
+    "ip": "20.67.58.192"
+  },
+  "scaleup": {
+    "scaleup_triggered": "2025-06-23T13:32:14+00:00",
+    "node_ready": "2025-06-23T13:33:08+00:00",
+    "first_pod": "2025-06-23T13:33:08+00:00",
+    "node_name": "aks-default-11086619-vmss000001",
+    "dur_scaleup_to_ready": 54.0,
+    "dur_ready_to_pod": 0.0,
+    "dur_scaleup_to_pod": 54.0
+  }
+}
+```
+
+</td>
+<td>
+
+```json
+{
+  "csp": "ovh",
+  "terraform_apply": {
+    "start": "2025-07-13T18:10:11+00:00",
+    "end": "2025-07-13T18:18:25+00:00",
+    "duration_seconds": 494
+  },
+  "external_ip": {
+    "start": "2025-07-13T18:19:28.661987+00:00",
+    "end": "2025-07-13T18:23:39.364339+00:00",
+    "duration_seconds": 250,
+    "ip": "51.77.17.242"
+  },
+  "scaleup": {
+    "scaleup_triggered": "2025-07-13T18:01:09+00:00",
+    "node_ready": "2025-07-13T18:04:28+00:00",
+    "first_pod": "2025-07-13T18:04:25+00:00",
+    "node_name": "default-node-0e4fb6",
+    "dur_scaleup_to_ready": 199.0,
+    "dur_ready_to_pod": -3.0,
+    "dur_scaleup_to_pod": 196.0
+  }
+}
+```
+
+</td>
+  </tr>
+</table>
+
+---
+
+| Metric                         | Azure | OVH    |
+|--------------------------------|-------|--------|
+| Terraform apply duration (s)   | 494   | TBD    |
+| External IP availability (s)   | 20    | TBD    |
+| Scaleup to ready (s)           | 54.0  | 199.0  |
+| Ready to pod (s)               | 0.0   | -3.0   |
+| Scaleup to pod (s)             | 54.0  | 196.0  |
+
+### Metrics Explained
+
+- **Terraform apply duration (s):**  
+  The total time it took for Terraform to provision the Kubernetes cluster and all required infrastructure resources on the cloud provider.
+
+- **External IP availability (s):**  
+  The time from the end of infrastructure provisioning until the dummy application received a public (external) IP address and became accessible from the internet.
+
+- **Scaleup to ready (s):**  
+  The time between triggering a node scale-up (e.g., due to increased load or a manual request) and the new node reporting as "Ready" in the Kubernetes cluster.
+
+- **Ready to pod (s):**  
+  The time from when the new node is "Ready" until the first pod is successfully scheduled and running on that node.
+
+- **Scaleup to pod (s):**  
+  The total time from triggering the scale-up until the first pod is running on the new node. This is the sum of "Scaleup to ready" and "Ready to pod".
+
+These metrics help compare the responsiveness and provisioning speed of managed Kubernetes services across different CSPs
+
+## Cleaning Up
+Don't forget to remove your provisioned resources once you are done.
+For this the Workflows `Terraform OVH Destroy` and `Terraform Azure Destroy` are provided.

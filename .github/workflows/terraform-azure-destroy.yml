@@ -8,14 +8,10 @@ jobs:
   terraform-destroy:
     runs-on: ubuntu-latest
     env:
-      AZ_CLIENT_ID: ${{ secrets.AZ_CLIENT_ID }}
-      AZ_CLIENT_SECRET: ${{ secrets.AZ_CLIENT_SECRET }}
-      AZ_SUBSCRIPTION_ID: ${{ secrets.AZ_SUBSCRIPTION_ID }}
-      AZ_TENANT_ID: ${{ secrets.AZ_TENANT_ID }}
       ARM_CLIENT_ID: ${{ secrets.AZ_CLIENT_ID }}
       ARM_CLIENT_SECRET: ${{ secrets.AZ_CLIENT_SECRET }}
-      ARM_SUBSCRIPTION_ID: ${{ secrets.AZ_SUBSCRIPTION_ID }}
-      ARM_TENANT_ID: ${{ secrets.AZ_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ vars.AZ_SUBSCRIPTION_ID }}
+      ARM_TENANT_ID: ${{ vars.AZ_TENANT_ID }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -28,8 +24,8 @@ jobs:
       - name: Terraform Init
         run: |
           terraform -chdir=terraform/azure init --reconfigure \
-            -backend-config="resource_group_name=rg-noudsavenije-devops" \
-            -backend-config="storage_account_name=noudstfbackend" \
+            -backend-config="resource_group_name=${{ vars.RESOURCE_GROUP_NAME }}" \
+            -backend-config="storage_account_name=${{ vars.STORAGE_ACCOUNT_NAME }}" \
             -backend-config="container_name=azuretfstate" \
             -backend-config="key=terraform.tfstate"
 

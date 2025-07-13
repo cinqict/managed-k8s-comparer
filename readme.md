@@ -23,7 +23,7 @@ This repository is used to compare the performance of managed Kubernetes service
      - Storage Blob data contributor on the Storage Account
      - Contributor on the Resource Group
    - Create OVH Cloud account at https://www.ovh.com/auth
-   - Create project (public cloud -> create new project)
+   - Create project (public cloud → create new project)
 
 ### Required Secrets
 

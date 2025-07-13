@@ -88,7 +88,6 @@ jobs:
         with:
           name: benchmark-results-ip-1
           path: results.json
-
       - name: Deploy Pod AutoScaler
         run: |
           kubectl --kubeconfig=kubeconfig.yaml apply -f ./dummy-app/pod-autoscaler.yaml

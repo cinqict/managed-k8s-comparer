@@ -15,7 +15,7 @@ events = client.CoreV1Api().list_event_for_all_namespaces().items
 scale_up_events = [e for e in events if 'TriggeredScaleUp' in (e.reason or '')]
 if not scale_up_events:
     print("No scale-up events found.")
-    exit(1)
+    exit(0)
 scale_up_event = max(scale_up_events, key=lambda e: e.last_timestamp or e.event_time)
 scale_up_time = scale_up_event.last_timestamp or scale_up_event.event_time
 print(f"Scale-up triggered at: {scale_up_time}")

@@ -60,6 +60,5 @@ jobs:
 
   measure_scaleup:
     needs: locust
-    if: ${{ !github.event.inputs.demo_mode }}
     uses: ./.github/workflows/measure-scaleup-template.yml
     secrets: inherit

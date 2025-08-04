@@ -11,6 +11,12 @@ terraform {
       version = "~> 4.0"
     }
   }
+  
+  backend "azurerm" {}
+}
+
+provider "azurerm" {
+  features {}
 }
 
 # Configure the Hetzner Cloud Provider with your token

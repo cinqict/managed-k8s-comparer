@@ -3,6 +3,5 @@ output "network_id" {
 }
 
 output "kubeconfig" {
-  value     = data.external.kubeconfig.result.kubeconfig
-  sensitive = true
+  value = data.external.kubeconfig.result.kubeconfig
 }

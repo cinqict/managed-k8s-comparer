@@ -2,6 +2,8 @@
 
 This repository is used to compare the performance of managed Kubernetes services from different Cloud Service Providers (CSPs), currently implemented are Azure and OVHcloud. It automates the deployment of a dummy application, runs benchmarks, and collects results for analysis.
 
+Hetzner setup implementation based on [tutorial by Alexdru Popescu](https://community.hetzner.com/tutorials/setup-your-own-scalable-kubernetes-cluster)
+
 ## Usage
 
 1. **Configure Secrets:**  
@@ -22,8 +24,13 @@ This repository is used to compare the performance of managed Kubernetes service
    - Setup App Registration with the following permissions:
      - Storage Blob data contributor on the Storage Account
      - Contributor on the Resource Group
-   - Create OVH Cloud account at https://www.ovh.com/auth
-   - Create project (public cloud → create new project)
+   - If using OVH
+    - Create OVH Cloud account at https://www.ovh.com/auth
+    - Create project (public cloud → create new project)
+   - If using Hetzner
+    - Create Hetzner account at https://accounts.hetzner.com/signUp
+    - Create project
+    - Create API token (project → security → API tokens)
 
 ### Required Secrets
 
@@ -37,6 +44,7 @@ This repository is used to compare the performance of managed Kubernetes service
 | `OVH_APPLICATION_SECRET` | OVH API application key                     | Yes         | [OVH API Credentials](https://www.ovh.com/auth/api/createToken?GET=/*&POST=/*&PUT=/*&DELETE=/*)     |
 | `OVH_CONSUMER_KEY`       | OVH API consumer key                        | Yes         | [OVH API Credentials](https://www.ovh.com/auth/api/createToken?GET=/*&POST=/*&PUT=/*&DELETE=/*)     |
 | `OVH_PROJECT_ID`         | OVH Public Cloud project ID                 | Yes         | OVHcloud Control Panel → Public Cloud → Project Info      |
+| `HETZNER_API_TOKEN`       | Read & Write token for Hetzner Terraform    | Yes         | [Hetzner Console](https://console.hetzner.com) → Security → API Tokens       |
 
 ### Required Variables
 

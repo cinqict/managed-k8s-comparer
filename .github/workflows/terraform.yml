@@ -13,7 +13,6 @@ jobs:
   terraform:
     runs-on: ubuntu-latest
     env:
-      # Common env vars (add more if needed)
       TF_VAR_ovh_endpoint: ${{ inputs.csp == 'ovh' && vars.OVH_ENDPOINT || '' }}
       TF_VAR_ovh_application_key: ${{ inputs.csp == 'ovh' && secrets.OVH_APPLICATION_KEY || '' }}
       TF_VAR_ovh_application_secret: ${{ inputs.csp == 'ovh' && secrets.OVH_APPLICATION_SECRET || '' }}
@@ -24,6 +23,7 @@ jobs:
       ARM_CLIENT_SECRET: ${{ secrets.AZ_CLIENT_SECRET }}
       ARM_SUBSCRIPTION_ID: ${{ vars.AZ_SUBSCRIPTION_ID }}
       ARM_TENANT_ID: ${{ vars.AZ_TENANT_ID }}
+      TF_VAR_hcloud_token: ${{ inputs.csp == 'hetzner' && secrets.HETZNER_API_TOKEN || ''}}
       
     steps:
       - name: Checkout repository

@@ -16,6 +16,7 @@ on:
         options:
           - azure
           - ovh
+          - hetzner
           - aws
 
 jobs:

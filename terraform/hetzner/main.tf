@@ -10,29 +10,29 @@ resource "hcloud_network_subnet" "private_network_subnet" {
   ip_range     = "10.0.1.0/24"
 }
 
-ephemeral "tls_private_key" "master_key" {
+resource "tls_private_key" "master_key" {
   algorithm = "ED25519"
 }
 
-ephemeral "tls_private_key" "worker_key" {
+resource "tls_private_key" "worker_key" {
   algorithm = "ED25519"
 }
 
 resource "hcloud_ssh_key" "master" {
   name       = "ephemeral-master-key"
-  public_key = ephemeral.tls_private_key.master_key.public_key_openssh
+  public_key = tls_private_key.master_key.public_key_openssh
 }
 
 resource "hcloud_ssh_key" "worker" {
   name       = "ephemeral-worker-key"
-  public_key = ephemeral.tls_private_key.worker_key.public_key_openssh
+  public_key = tls_private_key.worker_key.public_key_openssh
 }
 
 data "template_file" "master_cloud_init" {
   template = file("${path.module}/scripts/cloud-init.yaml")
   vars = {
-    master_public_key  = ephemeral.tls_private_key.master_key.public_key_openssh
-    worker_public_key  = ephemeral.tls_private_key.worker_key.public_key_openssh
+    master_public_key  = tls_private_key.master_key.public_key_openssh
+    worker_public_key  = tls_private_key.worker_key.public_key_openssh
   }
 }
 
@@ -63,8 +63,8 @@ resource "hcloud_server" "master-node" {
 data "template_file" "worker_cloud_init" {
   template = file("${path.module}/scripts/cloud-init.yaml")
   vars = {
-    worker_public_key   = ephemeral.tls_private_key.worker_key.public_key_openssh
-    worker_private_key  = ephemeral.tls_private_key.worker_key.private_key_pem
+    worker_public_key   = tls_private_key.worker_key.public_key_openssh
+    worker_private_key  = tls_private_key.worker_key.private_key_pem
   }
 }
 
@@ -98,7 +98,7 @@ resource "null_resource" "fetch_kubeconfig" {
       type        = "ssh"
       user        = "cluster"
       host        = hcloud_server.master-node.ipv4_address
-      private_key = ephemeral.tls_private_key.master_key.private_key_pem
+      private_key = tls_private_key.master_key.private_key_pem
     }
 
     inline = [
@@ -112,7 +112,7 @@ resource "null_resource" "fetch_kubeconfig" {
 }
 
 resource "local_file" "master_private_key" {
-  content  = ephemeral.tls_private_key.master_key.private_key_pem
+  content  = tls_private_key.master_key.private_key_pem
   filename = "${path.module}/.master_key.pem"
   file_permission = "0600"
 }

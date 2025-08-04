@@ -65,6 +65,7 @@ data "template_file" "worker_cloud_init" {
   vars = {
     worker_public_key   = tls_private_key.worker_key.public_key_openssh
     worker_private_key  = tls_private_key.worker_key.private_key_pem
+    master_public_key   = tls_private_key.master_key.public_key_openssh
   }
 }
 
@@ -102,6 +103,8 @@ resource "null_resource" "fetch_kubeconfig" {
     }
 
     inline = [
+      # Wait for k3s.yaml to exist before proceeding
+      "while [ ! -f /etc/rancher/k3s/k3s.yaml ]; do echo 'Waiting for k3s.yaml...'; sleep 5; done",
       # Replace 127.0.0.1 with the public IP so kubeconfig works remotely
       "sudo sed -i 's/127.0.0.1/${hcloud_server.master-node.ipv4_address}/' /etc/rancher/k3s/k3s.yaml",
       # Copy to a temp location for easier access

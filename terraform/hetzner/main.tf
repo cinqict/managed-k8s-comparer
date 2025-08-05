@@ -36,7 +36,7 @@ data "template_file" "master_cloud_init" {
   }
 }
 
-resource "hcloud_server" "master-node" {
+resource "hcloud_server" "master_node" {
   name        = "master-node"
   image       = "ubuntu-24.04"
   server_type = "cax11"
@@ -88,17 +88,17 @@ resource "hcloud_server" "worker-nodes" {
 
   ssh_keys = [hcloud_ssh_key.worker.id]
 
-  depends_on = [hcloud_network_subnet.private_network_subnet, hcloud_server.master-node]
+  depends_on = [hcloud_network_subnet.private_network_subnet, hcloud_server.master_node]
 }
 
 resource "null_resource" "fetch_kubeconfig" {
-  depends_on = [hcloud_server.master-node]
+  depends_on = [hcloud_server.master_node]
 
   provisioner "remote-exec" {
     connection {
       type        = "ssh"
       user        = "cluster"
-      host        = hcloud_server.master-node.ipv4_address
+      host        = hcloud_server.master_node.ipv4_address
       private_key = tls_private_key.master_key.private_key_pem
     }
 
@@ -106,7 +106,7 @@ resource "null_resource" "fetch_kubeconfig" {
       # Wait for k3s.yaml to exist before proceeding
       "while [ ! -f /etc/rancher/k3s/k3s.yaml ]; do echo 'Waiting for k3s.yaml...'; sleep 5; done",
       # Replace 127.0.0.1 with the public IP so kubeconfig works remotely
-      "sudo sed -i 's/127.0.0.1/${hcloud_server.master-node.ipv4_address}/' /etc/rancher/k3s/k3s.yaml",
+      "sudo sed -i 's/127.0.0.1/${hcloud_server.master_node.ipv4_address}/' /etc/rancher/k3s/k3s.yaml",
       # Copy to a temp location for easier access
       "sudo cp /etc/rancher/k3s/k3s.yaml /tmp/kubeconfig.yaml",
       "sudo chown cluster:cluster /tmp/kubeconfig.yaml"
@@ -125,10 +125,9 @@ data "external" "kubeconfig" {
 
   program = [
     "bash", "-c", <<EOT
-      echo '{"kubeconfig": "'$(ssh -o StrictHostKeyChecking=accept-new \
-        -i ${local_file.master_private_key.filename} \
-        cluster@${hcloud_server.master-node.ipv4_address} \
-        'cat /tmp/kubeconfig.yaml' | sed 's/"/\\"/g' | tr '\n' '\\n')'"}'
+      scp -o StrictHostKeyChecking=accept-new -i ${local_file.master_private_key.filename} \
+        cluster@${hcloud_server.master_node.ipv4_address}:/tmp/kubeconfig.yaml /tmp/kubeconfig.yaml
+      echo '{"kubeconfig": "'$(sed 's/\"/\\\"/g' /tmp/kubeconfig.yaml | tr '\n' '\\n')'"}'
     EOT
   ]
 }

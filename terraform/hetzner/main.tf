@@ -103,13 +103,13 @@ resource "null_resource" "fetch_kubeconfig" {
     }
 
     inline = [
-      # Wait for k3s.yaml to exist before proceeding
-      "while [ ! -f /etc/rancher/k3s/k3s.yaml ]; do echo 'Waiting for k3s.yaml...'; sleep 5; done",
-      # Replace 127.0.0.1 with the public IP so kubeconfig works remotely
-      "sudo sed -i 's/127.0.0.1/${hcloud_server.master_node.ipv4_address}/' /etc/rancher/k3s/k3s.yaml",
-      # Copy to a temp location for easier access
+      # Wait for k3s.yaml to exist and be non-empty before proceeding
+      "while [ ! -s /etc/rancher/k3s/k3s.yaml ]; do echo 'Waiting for k3s.yaml...'; sleep 5; done",
+      "echo 'k3s.yaml found, copying...'",
       "sudo cp /etc/rancher/k3s/k3s.yaml /tmp/kubeconfig.yaml",
-      "sudo chown cluster:cluster /tmp/kubeconfig.yaml"
+      "sudo chown cluster:cluster /tmp/kubeconfig.yaml",
+      "ls -l /tmp/kubeconfig.yaml",
+      "cat /tmp/kubeconfig.yaml"
     ]
   }
 }

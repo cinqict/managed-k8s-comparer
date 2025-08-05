@@ -93,7 +93,9 @@ resource "hcloud_server" "worker-nodes" {
 
 resource "null_resource" "fetch_kubeconfig" {
   depends_on = [hcloud_server.master_node]
-
+  triggers = {
+    always_run = timestamp()
+  }
   provisioner "remote-exec" {
     connection {
       type        = "ssh"
@@ -101,15 +103,14 @@ resource "null_resource" "fetch_kubeconfig" {
       host        = hcloud_server.master_node.ipv4_address
       private_key = tls_private_key.master_key.private_key_pem
     }
-
     inline = [
       # Wait for k3s.yaml to exist and be non-empty before proceeding
       "while [ ! -s /etc/rancher/k3s/k3s.yaml ]; do echo 'Waiting for k3s.yaml...'; sleep 5; done",
       "echo 'k3s.yaml found, copying...'",
-      "sudo cp /etc/rancher/k3s/k3s.yaml /tmp/kubeconfig.yaml || { echo 'Copy failed!'; sudo ls -l /etc/rancher/k3s/; exit 1; }",
-      "sudo chown cluster:cluster /tmp/kubeconfig.yaml || { echo 'Chown failed!'; exit 1; }",
-      "ls -l /tmp/kubeconfig.yaml || { echo 'ls failed!'; exit 1; }",
-      "cat /tmp/kubeconfig.yaml || { echo 'cat failed!'; exit 1; }"
+      "sudo cp /etc/rancher/k3s/k3s.yaml /home/cluster/kubeconfig.yaml || { echo 'Copy failed!'; sudo ls -l /etc/rancher/k3s/; exit 1; }",
+      "sudo chown cluster:cluster /home/cluster/kubeconfig.yaml || { echo 'Chown failed!'; exit 1; }",
+      "ls -l /home/cluster/kubeconfig.yaml || { echo 'ls failed!'; exit 1; }",
+      "cat /home/cluster/kubeconfig.yaml || { echo 'cat failed!'; exit 1; }"
     ]
   }
 }
@@ -122,13 +123,12 @@ resource "local_file" "master_private_key" {
 
 data "external" "kubeconfig" {
   depends_on = [null_resource.fetch_kubeconfig, local_file.master_private_key]
-
   program = [
     "bash", "-c", <<EOT
       set -ex
       echo "Attempting to scp kubeconfig from master node..."
       scp -o StrictHostKeyChecking=accept-new -i ${local_file.master_private_key.filename} \
-        cluster@${hcloud_server.master_node.ipv4_address}:/tmp/kubeconfig.yaml /tmp/kubeconfig.yaml
+        cluster@${hcloud_server.master_node.ipv4_address}:/home/cluster/kubeconfig.yaml /tmp/kubeconfig.yaml
       echo "Contents of /tmp/kubeconfig.yaml after scp:"
       cat /tmp/kubeconfig.yaml
       echo '{"kubeconfig": "'$(sed 's/\"/\\\"/g' /tmp/kubeconfig.yaml | tr '\n' '\\n')'"}'

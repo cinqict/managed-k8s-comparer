@@ -125,8 +125,12 @@ data "external" "kubeconfig" {
 
   program = [
     "bash", "-c", <<EOT
+      set -ex
+      echo "Attempting to scp kubeconfig from master node..."
       scp -o StrictHostKeyChecking=accept-new -i ${local_file.master_private_key.filename} \
         cluster@${hcloud_server.master_node.ipv4_address}:/tmp/kubeconfig.yaml /tmp/kubeconfig.yaml
+      echo "Contents of /tmp/kubeconfig.yaml after scp:"
+      cat /tmp/kubeconfig.yaml
       echo '{"kubeconfig": "'$(sed 's/\"/\\\"/g' /tmp/kubeconfig.yaml | tr '\n' '\\n')'"}'
     EOT
   ]

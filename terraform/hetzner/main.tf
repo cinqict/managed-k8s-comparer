@@ -106,10 +106,10 @@ resource "null_resource" "fetch_kubeconfig" {
       # Wait for k3s.yaml to exist and be non-empty before proceeding
       "while [ ! -s /etc/rancher/k3s/k3s.yaml ]; do echo 'Waiting for k3s.yaml...'; sleep 5; done",
       "echo 'k3s.yaml found, copying...'",
-      "sudo cp /etc/rancher/k3s/k3s.yaml /tmp/kubeconfig.yaml",
-      "sudo chown cluster:cluster /tmp/kubeconfig.yaml",
-      "ls -l /tmp/kubeconfig.yaml",
-      "cat /tmp/kubeconfig.yaml"
+      "sudo cp /etc/rancher/k3s/k3s.yaml /tmp/kubeconfig.yaml || { echo 'Copy failed!'; sudo ls -l /etc/rancher/k3s/; exit 1; }",
+      "sudo chown cluster:cluster /tmp/kubeconfig.yaml || { echo 'Chown failed!'; exit 1; }",
+      "ls -l /tmp/kubeconfig.yaml || { echo 'ls failed!'; exit 1; }",
+      "cat /tmp/kubeconfig.yaml || { echo 'cat failed!'; exit 1; }"
     ]
   }
 }

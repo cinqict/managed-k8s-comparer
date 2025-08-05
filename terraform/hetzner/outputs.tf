@@ -8,7 +8,7 @@ output "kubeconfig" {
 
 output "master_private_key" {
   value     = tls_private_key.master_key.private_key_pem
-  sensitive = false
+  sensitive = true
 }
 
 output "master_public_key" {
@@ -18,7 +18,7 @@ output "master_public_key" {
 
 output "worker_private_key" {
   value     = tls_private_key.worker_key.private_key_pem
-  sensitive = false
+  sensitive = true
 }
 
 output "worker_public_key" {

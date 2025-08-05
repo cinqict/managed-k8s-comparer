@@ -115,7 +115,7 @@ resource "null_resource" "fetch_kubeconfig" {
 }
 
 resource "local_file" "master_private_key" {
-  content  = tls_private_key.master_key.private_key_pem
+  content  = tls_private_key.master_key.private_key_openssh
   filename = "${path.module}/.master_key.pem"
   file_permission = "0600"
 }

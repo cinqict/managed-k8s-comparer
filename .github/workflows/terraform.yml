@@ -49,7 +49,7 @@ jobs:
             -backend-config="key=terraform.tfstate"
 
       - name: Terraform Plan
-        run: terraform -chdir=terraform/${{ inputs.csp }} plan
+        run: terraform -chdir=terraform/${{ inputs.csp }} plan -out=tfplan
 
       - name: Download benchmark results artifact
         uses: actions/download-artifact@v4
@@ -65,7 +65,7 @@ jobs:
       - name: Terraform Apply
         run: |
           start=$(date +%s)
-          terraform -chdir=terraform/${{ inputs.csp }} apply -auto-approve
+          terraform -chdir=terraform/${{ inputs.csp }} apply -auto-approve tfplan
           end=$(date +%s)
           duration=$((end - start))
           echo $start > apply_start.txt

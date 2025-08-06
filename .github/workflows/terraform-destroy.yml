@@ -89,6 +89,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Generate dummy SSH keys (Hetzner destroy)
+        run: |
+          ssh-keygen -t ed25519 -f terraform/hetzner/master_key -N ""
+          ssh-keygen -t ed25519 -f terraform/hetzner/worker_key -N ""
+
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
         with:

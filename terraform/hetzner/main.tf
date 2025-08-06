@@ -10,29 +10,18 @@ resource "hcloud_network_subnet" "private_network_subnet" {
   ip_range     = "10.0.1.0/24"
 }
 
-resource "tls_private_key" "master_key" {
-  algorithm = "ED25519"
-}
-
-resource "tls_private_key" "worker_key" {
-  algorithm = "ED25519"
-}
-
 resource "hcloud_ssh_key" "master" {
-  name       = "ephemeral-master-key"
-  public_key = tls_private_key.master_key.public_key_openssh
+  public_key = file("${path.module}/master_key.pub")
 }
-
 resource "hcloud_ssh_key" "worker" {
-  name       = "ephemeral-worker-key"
-  public_key = tls_private_key.worker_key.public_key_openssh
+  public_key = file("${path.module}/worker_key.pub")
 }
 
 data "template_file" "master_cloud_init" {
   template = file("${path.module}/scripts/cloud-init.yaml")
   vars = {
-    master_public_key  = tls_private_key.master_key.public_key_openssh
-    worker_public_key  = tls_private_key.worker_key.public_key_openssh
+    master_public_key  = file("${path.module}/master_key.pub")
+    worker_public_key  = file("${path.module}/worker_key.pub")
   }
 }
 
@@ -55,17 +44,14 @@ resource "hcloud_server" "master_node" {
   ssh_keys = [hcloud_ssh_key.master.id]
   user_data = data.template_file.master_cloud_init.rendered
 
-  # If we don't specify this, Terraform will create the resources in parallel
-  # We want this node to be created after the private network is created
   depends_on = [hcloud_network_subnet.private_network_subnet]
 }
 
 data "template_file" "worker_cloud_init" {
   template = file("${path.module}/scripts/cloud-init.yaml")
   vars = {
-    worker_public_key   = tls_private_key.worker_key.public_key_openssh
-    worker_private_key  = tls_private_key.worker_key.private_key_pem
-    master_public_key   = tls_private_key.master_key.public_key_openssh
+    worker_public_key   = file("${path.module}/worker_key.pub")
+    worker_private_key   = file("${path.module}/worker_key")
   }
 }
 
@@ -86,52 +72,7 @@ resource "hcloud_server" "worker-nodes" {
   }
   user_data = data.template_file.worker_cloud_init.rendered
 
-  ssh_keys = [hcloud_ssh_key.worker.id]
+  ssh_keys = [ hcloud_ssh_key.worker.id ]
 
-  depends_on = [hcloud_network_subnet.private_network_subnet, hcloud_server.master_node]
-}
-
-resource "null_resource" "fetch_kubeconfig" {
-  depends_on = [hcloud_server.master_node]
-  triggers = {
-    always_run = timestamp()
-  }
-  provisioner "remote-exec" {
-    connection {
-      type        = "ssh"
-      user        = "cluster"
-      host        = hcloud_server.master_node.ipv4_address
-      private_key = tls_private_key.master_key.private_key_pem
-    }
-    inline = [
-      # Wait for k3s.yaml to exist and be non-empty before proceeding
-      "while [ ! -s /etc/rancher/k3s/k3s.yaml ]; do echo 'Waiting for k3s.yaml...'; sleep 5; done",
-      "echo 'k3s.yaml found, copying...'",
-      "sudo cp /etc/rancher/k3s/k3s.yaml /home/cluster/kubeconfig.yaml || { echo 'Copy failed!'; sudo ls -l /etc/rancher/k3s/; exit 1; }",
-      "sudo chown cluster:cluster /home/cluster/kubeconfig.yaml || { echo 'Chown failed!'; exit 1; }",
-      "ls -l /home/cluster/kubeconfig.yaml || { echo 'ls failed!'; exit 1; }",
-      "cat /home/cluster/kubeconfig.yaml || { echo 'cat failed!'; exit 1; }"
-    ]
-  }
-}
-
-resource "local_file" "master_private_key" {
-  content  = tls_private_key.master_key.private_key_openssh
-  filename = "${path.module}/.master_key.pem"
-  file_permission = "0600"
-}
-
-data "external" "kubeconfig" {
-  depends_on = [null_resource.fetch_kubeconfig, local_file.master_private_key]
-  program = [
-    "bash", "-c", <<EOT
-      set -ex
-      echo "Attempting to scp kubeconfig from master node..."
-      scp -o StrictHostKeyChecking=accept-new -i ${local_file.master_private_key.filename} \
-        cluster@${hcloud_server.master_node.ipv4_address}:/home/cluster/kubeconfig.yaml /tmp/kubeconfig.yaml
-      echo "Contents of /tmp/kubeconfig.yaml after scp:"
-      cat /tmp/kubeconfig.yaml
-      echo '{"kubeconfig": "'$(sed 's/\"/\\\"/g' /tmp/kubeconfig.yaml | tr '\n' '\\n')'"}'
-    EOT
-  ]
+  depends_on = [ hcloud_network_subnet.private_network_subnet, hcloud_server.master_node ]
 }

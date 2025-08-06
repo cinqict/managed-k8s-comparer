@@ -6,10 +6,6 @@ terraform {
       # Here we use version 1.52.0, this may change in the future
       version = "1.52.0"
     }
-    tls = {
-      source  = "hashicorp/tls"
-      version = "~> 4.0"
-    }
   }
   
   backend "azurerm" {}
@@ -23,5 +19,3 @@ provider "azurerm" {
 provider "hcloud" {
   token = var.hcloud_token
 }
-
-provider "tls" {}

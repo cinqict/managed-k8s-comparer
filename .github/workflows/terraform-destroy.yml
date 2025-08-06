@@ -83,7 +83,7 @@ jobs:
       ARM_CLIENT_SECRET: ${{ secrets.AZ_CLIENT_SECRET }}
       ARM_SUBSCRIPTION_ID: ${{ vars.AZ_SUBSCRIPTION_ID }}
       ARM_TENANT_ID: ${{ vars.AZ_TENANT_ID }}
-      HCLOUD_TOKEN: ${{ secrets.HETZNER_API_TOKEN }}
+      TF_VAR_hcloud_token: ${{ secrets.HETZNER_API_TOKEN }}
 
     steps:
       - name: Checkout repository

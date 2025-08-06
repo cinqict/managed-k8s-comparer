@@ -50,7 +50,7 @@ resource "hcloud_server" "master_node" {
 }
 
 data "template_file" "worker_cloud_init" {
-  template = file("${path.module}/scripts/cloud-init.yaml")
+  template = file("${path.module}/scripts/cloud-init-worker.yaml")
   vars = {
     worker_public_key  = file("${path.module}/worker_key.pub")
     worker_private_key = file("${path.module}/worker_key")

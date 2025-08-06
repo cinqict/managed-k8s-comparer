@@ -85,9 +85,10 @@ jobs:
         if: ${{ inputs.csp == 'hetzner' }}
         run: |
           MASTER_IP=$(terraform -chdir=terraform/hetzner output -raw master_node_ip)
-          scp -o StrictHostKeyChecking=accept-new -i terraform/hetzner/master_key cluster@$MASTER_IP:/home/cluster/kubeconfig.yaml terraform/hetzner/kubeconfig.yaml
+          scp -v -o StrictHostKeyChecking=accept-new -i terraform/hetzner/master_key cluster@$MASTER_IP:/etc/rancher/k3s/k3s.yaml kubeconfig.yaml
 
       - name: Export kubeconfig
+        if: ${{ inputs.csp != 'hetzner' }}
         run: terraform -chdir=terraform/${{ inputs.csp }} output -raw kubeconfig > kubeconfig.yaml
 
       - name: Upload kubeconfig as artifact

@@ -34,11 +34,16 @@ jobs:
         with:
           terraform_version: 1.7.5
 
-      - name: Generate SSH keys (Hetzner only)
-        if: ${{ inputs.csp == 'hetzner' }}
+      - name: Run Pre-Apply script
         run: |
-          ssh-keygen -t ed25519 -f terraform/hetzner/master_key -N ""
-          ssh-keygen -t ed25519 -f terraform/hetzner/worker_key -N ""
+          PRE_APPLY_SCRIPT="terraform/${{ inputs.csp }}/scripts/pre_apply.py"
+          if [ -f "$PRE_APPLY_SCRIPT" ]; then
+            echo "Running pre-apply script for ${{ inputs.csp }}..."
+            chmod +x "$PRE_APPLY_SCRIPT"
+            "$PRE_APPLY_SCRIPT"
+          else
+            echo "No pre-apply steps required for ${{ inputs.csp }}."
+          fi
 
       - name: Terraform Init
         run: |
@@ -81,6 +86,16 @@ jobs:
           name: benchmark-results-infra
           path: results.json
 
+      - name: Run Post-Apply script
+        run: |
+          POST_APPLY_SCRIPT="terraform/${{ inputs.csp }}/scripts/post_apply.py"
+          if [ -f "$POST_APPLY_SCRIPT" ]; then
+            echo "Running post-apply script for ${{ inputs.csp }}..."
+            chmod +x "$POST_APPLY_SCRIPT"
+            "$POST_APPLY_SCRIPT"
+          else
+            echo "No post-apply steps required for ${{ inputs.csp }}."
+          fi
 
       - name: Fetch kubeconfig from master node (Hetzner only)
         if: ${{ inputs.csp == 'hetzner' }}
@@ -88,20 +103,6 @@ jobs:
           MASTER_IP=$(terraform -chdir=terraform/hetzner output -raw master_node_ip)
           scp -v -o StrictHostKeyChecking=accept-new -i terraform/hetzner/master_key cluster@$MASTER_IP:/etc/rancher/k3s/k3s.yaml kubeconfig.yaml
           sed -i "s|https://127.0.0.1:6443|https://$MASTER_IP:6443|g" kubeconfig.yaml
-
-      - name: Upload worker private key for debugging (Hetzner only)
-        if: ${{ inputs.csp == 'hetzner' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: worker-key
-          path: terraform/hetzner/worker_key
-
-      - name: Upload master private key for debugging (Hetzner only)
-        if: ${{ inputs.csp == 'hetzner' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: master-key
-          path: terraform/hetzner/master_key
 
       - name: Export kubeconfig
         if: ${{ inputs.csp != 'hetzner' }}

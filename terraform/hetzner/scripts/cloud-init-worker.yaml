@@ -7,14 +7,11 @@ users:
     - ${worker_public_key}
     sudo: ALL=(ALL) NOPASSWD:ALL
     shell: /bin/bash
-    passwd: "SecurePassword123"
-  - name: root
-    passwd: "SecurePassword123"
 
 write_files:
   - path: /root/.ssh/id_rsa
     content: |
-      ${worker_private_key}
+      ${indent(6, worker_private_key)}
     permissions: "0600"
 
 runcmd:

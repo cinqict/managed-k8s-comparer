@@ -88,6 +88,7 @@ resource "random_password" "postgresql" {
 data "template_file" "postgres_cloud_init" {
   template = file("${path.module}/scripts/cloud-init-postgres.yaml")
   vars = {
+    master_public_key = file("${path.module}/master_key.pub")
     db_user     = var.db_user
     db_password = random_password.postgresql.result
     db_name     = var.db_name

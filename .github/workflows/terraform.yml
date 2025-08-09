@@ -87,6 +87,13 @@ jobs:
           path: results.json
 
       - name: Run Post-Apply script
+        env: 
+          HCLOUD_TOKEN: ${{ secrets.HETZNER_API_TOKEN }}
+          OVH_ENDPOINT: ${{ vars.OVH_ENDPOINT }}
+          OVH_APPLICATION_KEY: ${{ secrets.OVH_APPLICATION_KEY }}
+          OVH_APPLICATION_SECRET: ${{ secrets.OVH_APPLICATION_SECRET }}
+          OVH_CONSUMER_KEY: ${{ secrets.OVH_CONSUMER_KEY }}
+          OVH_PROJECT_ID: ${{ secrets.OVH_PROJECT_ID }}
         run: |
           POST_APPLY_SCRIPT="terraform/${{ inputs.csp }}/scripts/post_apply.py"
           if [ -f "$POST_APPLY_SCRIPT" ]; then
@@ -97,12 +104,13 @@ jobs:
             echo "No post-apply steps required for ${{ inputs.csp }}."
           fi
 
-      - name: Fetch kubeconfig from master node (Hetzner only)
-        if: ${{ inputs.csp == 'hetzner' }}
-        run: |
-          MASTER_IP=$(terraform -chdir=terraform/hetzner output -raw master_node_ip)
-          scp -v -o StrictHostKeyChecking=accept-new -i terraform/hetzner/master_key cluster@$MASTER_IP:/etc/rancher/k3s/k3s.yaml kubeconfig.yaml
-          sed -i "s|https://127.0.0.1:6443|https://$MASTER_IP:6443|g" kubeconfig.yaml
+
+      # - name: Fetch kubeconfig from master node (Hetzner only)
+      #   if: ${{ inputs.csp == 'hetzner' }}
+      #   run: |
+      #     MASTER_IP=$(terraform -chdir=terraform/hetzner output -raw master_node_ip)
+      #     scp -v -o StrictHostKeyChecking=accept-new -i terraform/hetzner/master_key cluster@$MASTER_IP:/etc/rancher/k3s/k3s.yaml kubeconfig.yaml
+      #     sed -i "s|https://127.0.0.1:6443|https://$MASTER_IP:6443|g" kubeconfig.yaml
 
       - name: Export kubeconfig
         if: ${{ inputs.csp != 'hetzner' }}
@@ -138,21 +146,9 @@ jobs:
           terraform -chdir=terraform/${{ inputs.csp }} output -raw pgsql_port > pgsql_port.txt
           terraform -chdir=terraform/${{ inputs.csp }} output -raw pgsql_dbname > pgsql_dbname.txt
 
-      - name: Upload OVH DB credentials as artifact
-        if: ${{ inputs.csp == 'ovh' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: pgsql-credentials
-          path: |
-            pgsql_host.txt
-            pgsql_port.txt
-            pgsql_username.txt
-            pgsql_password.txt
-            pgsql_dbname.txt
 
-      # Azure-specific steps
       - name: Export DB credentials to files
-        if: ${{ inputs.csp == 'azure' || inputs.csp == 'hetzner' }}
+        if: ${{ inputs.csp == 'azure'}}
         run: |
           terraform -chdir=terraform/${{ inputs.csp }} output -raw pgsql_host > pgsql_host.txt
           terraform -chdir=terraform/${{ inputs.csp }} output -raw pgsql_port > pgsql_port.txt
@@ -161,7 +157,6 @@ jobs:
           terraform -chdir=terraform/${{ inputs.csp }} output -raw pgsql_password > pgsql_password.txt
 
       - name: Upload DB credentials as artifact
-        if: ${{ inputs.csp == 'azure' || inputs.csp == 'hetzner' }}
         uses: actions/upload-artifact@v4
         with:
           name: pgsql-credentials
@@ -171,10 +166,3 @@ jobs:
             pgsql_username.txt
             pgsql_password.txt
             pgsql_dbname.txt
-
-      # AWS placeholder
-      - name: Not implemented
-        if: ${{ inputs.csp == 'aws' }}
-        run: |
-          echo "AWS provider is not implemented yet."
-          exit 1

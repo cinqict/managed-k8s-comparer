@@ -108,7 +108,7 @@ resource "hcloud_server" "postgresql_server" {
     ip = "10.0.1.10" # Static IP for PostgreSQL
   }
   ssh_keys  = [hcloud_ssh_key.master.id]
-  user_data = template_file.postgres_cloud_init.rendered
+  user_data = data.template_file.postgres_cloud_init.rendered
 
   depends_on = [hcloud_network_subnet.private_network_subnet]
 }

@@ -78,3 +78,37 @@ resource "hcloud_server" "worker-nodes" {
 
   depends_on = [hcloud_network_subnet.private_network_subnet, hcloud_server.master_node]
 }
+
+resource "random_password" "postgresql" {
+  length  = 16
+  special = true
+  override_special = "_@"
+}
+
+data "template_file" "postgres_cloud_init" {
+  template = file("${path.module}/scripts/cloud-init-postgres.yaml")
+  vars = {
+    db_user     = var.db_user
+    db_password = random_password.postgresql.result
+    db_name     = var.db_name
+  }
+}
+
+resource "hcloud_server" "postgresql_server" {
+  name        = "postgresql-db"
+  image       = "ubuntu-24.04"
+  server_type = "cax11"
+  location    = "fsn1"
+  public_net {
+    ipv4_enabled = true
+    ipv6_enabled = false
+  }
+  network {
+    network_id = hcloud_network.private_network.id
+    ip = "10.0.1.10" # Static IP for PostgreSQL
+  }
+  ssh_keys  = [hcloud_ssh_key.master.id]
+  user_data = template_file.postgres_cloud_init.rendered
+
+  depends_on = [hcloud_network_subnet.private_network_subnet]
+}

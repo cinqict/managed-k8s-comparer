@@ -152,7 +152,7 @@ jobs:
 
       # Azure-specific steps
       - name: Export DB credentials to files
-        if: ${{ inputs.csp == 'azure' }}
+        if: ${{ inputs.csp == 'azure' || inputs.csp == 'hetzner' }}
         run: |
           terraform -chdir=terraform/${{ inputs.csp }} output -raw pgsql_host > pgsql_host.txt
           terraform -chdir=terraform/${{ inputs.csp }} output -raw pgsql_port > pgsql_port.txt
@@ -161,7 +161,7 @@ jobs:
           terraform -chdir=terraform/${{ inputs.csp }} output -raw pgsql_password > pgsql_password.txt
 
       - name: Upload DB credentials as artifact
-        if: ${{ inputs.csp == 'azure' }}
+        if: ${{ inputs.csp == 'azure' || inputs.csp == 'hetzner' }}
         uses: actions/upload-artifact@v4
         with:
           name: pgsql-credentials

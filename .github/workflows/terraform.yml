@@ -99,7 +99,7 @@ jobs:
           if [ -f "$POST_APPLY_SCRIPT" ]; then
             echo "Running post-apply script for ${{ inputs.csp }}..."
             chmod +x "$POST_APPLY_SCRIPT"
-            "$POST_APPLY_SCRIPT"
+            python "$POST_APPLY_SCRIPT"
           else
             echo "No post-apply steps required for ${{ inputs.csp }}."
           fi

@@ -22,7 +22,7 @@ def create_hcloud_api_secret(hcloud_token, namespace):
     ], text=True).strip()
 
     subprocess.run([
-        "kubectl", "-n", namespace, "create", "secret", "generic", "hcloud",
+        "kubectl", "--kubeconfig", "kubeconfig.yaml", "-n", namespace, "create", "secret", "generic", "hcloud",
         f"--from-literal=token={hcloud_token}",
         f"--from-literal=network={network_id}"
     ], check=True)

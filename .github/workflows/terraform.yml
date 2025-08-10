@@ -104,14 +104,6 @@ jobs:
             echo "No post-apply steps required for ${{ inputs.csp }}."
           fi
 
-
-      # - name: Fetch kubeconfig from master node (Hetzner only)
-      #   if: ${{ inputs.csp == 'hetzner' }}
-      #   run: |
-      #     MASTER_IP=$(terraform -chdir=terraform/hetzner output -raw master_node_ip)
-      #     scp -v -o StrictHostKeyChecking=accept-new -i terraform/hetzner/master_key cluster@$MASTER_IP:/etc/rancher/k3s/k3s.yaml kubeconfig.yaml
-      #     sed -i "s|https://127.0.0.1:6443|https://$MASTER_IP:6443|g" kubeconfig.yaml
-
       - name: Export kubeconfig
         if: ${{ inputs.csp != 'hetzner' }}
         run: terraform -chdir=terraform/${{ inputs.csp }} output -raw kubeconfig > kubeconfig.yaml

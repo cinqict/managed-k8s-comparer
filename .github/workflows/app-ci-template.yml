@@ -37,6 +37,11 @@ jobs:
           file: ./dummy-app/Dockerfile
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/dummy-app:latest
+          platforms: linux/amd64,linux/arm64
+      - name: Verify Docker Hub image manifest
+        if: needs.check-secret.outputs.key-defined == 'true'
+        run: |
+          docker buildx imagetools inspect ${{ secrets.DOCKERHUB_USERNAME }}/dummy-app:latest
       - name: Download kubeconfig artifact
         uses: actions/download-artifact@v4
         with:
@@ -71,7 +76,7 @@ jobs:
         run: grep 'image:' ./dummy-app/k8s-deployment.yaml
       - name: Deploy Dummy App to Kubernetes
         run: |
-          kubectl --kubeconfig=kubeconfig.yaml apply -f ./dummy-app/k8s-deployment.yaml
+          kubectl --kubeconfig=kubeconfig.yaml apply --force --record -f ./dummy-app/k8s-deployment.yaml
       - name: Download benchmark results artifact
         uses: actions/download-artifact@v4
         with:

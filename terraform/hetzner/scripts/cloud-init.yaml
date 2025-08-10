@@ -8,8 +8,14 @@ users:
     - ${worker_public_key}
     sudo: ALL=(ALL) NOPASSWD:ALL
     shell: /bin/bash
+write_files:
+  - path: /etc/rancher/k3s/registries.yaml
+    content: |
+      mirrors:
+        "*":
+    permissions: "0644"
 runcmd:
   - apt-get update -y
-  - curl https://get.k3s.io | INSTALL_K3S_EXEC="--disable traefik --disable-cloud-controller --kubelet-arg cloud-provider=external --tls-san=10.0.1.1" sh -
+  - curl https://get.k3s.io | INSTALL_K3S_EXEC="--disable traefik --disable-cloud-controller --kubelet-arg cloud-provider=external --tls-san=10.0.1.1 --embedded-registry" sh -
   - chown cluster:cluster /etc/rancher/k3s/k3s.yaml
   - chown cluster:cluster /var/lib/rancher/k3s/server/node-token

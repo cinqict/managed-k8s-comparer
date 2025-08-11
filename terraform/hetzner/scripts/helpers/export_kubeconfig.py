@@ -1,4 +1,6 @@
 import subprocess
+import time
+
 
 def get_master_ip():
 	result = subprocess.run([
@@ -6,13 +8,25 @@ def get_master_ip():
 	], capture_output=True, text=True, check=True)
 	return result.stdout.strip()
 
+	
+
 def fetch_kubeconfig(local_path, master_ip):
 	scp_cmd = [
-		"scp", "-v", "-o", "StrictHostKeyChecking=accept-new",
+		"scp", "-o", "StrictHostKeyChecking=accept-new",
 		"-i", "terraform/hetzner/master_key",
 		f"cluster@{master_ip}:/etc/rancher/k3s/k3s.yaml", local_path
 	]
-	subprocess.run(scp_cmd, check=True)
+	for attempt in range(10):
+		try:
+			subprocess.run(scp_cmd, check=True)
+			return
+		except subprocess.CalledProcessError as _:
+			if attempt < 9:
+				print(f"Attempt {attempt+1} failed, retrying in 5 seconds...")
+				time.sleep(5)
+			else:
+				print("All attempts to fetch kubeconfig failed.")
+				raise
 
 def patch_kubeconfig(local_path, master_ip):
     with open(local_path, "r") as f:

@@ -16,4 +16,7 @@ helm repo update
 helm install hcloud-cloud-autoscaler hcloud/hcloud-cloud-autoscaler \
   --namespace kube-system \
   --set hcloud.token=$HCLOUD_TOKEN \
-  --set cluster.name=$CLUSTER_NAME
+  --set cluster.name=$CLUSTER_NAME \
+  --set nodeGroups[0].name=worker-nodes \
+  --set nodeGroups[0].minSize=1 \
+  --set nodeGroups[0].maxSize=5

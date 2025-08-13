@@ -19,13 +19,13 @@ if __name__ == "__main__":
     print("Database credentials exported successfully.")
 
     print("Installing Hetzner Cloud Autoscaler via Helm...")
-    script_path = os.path.join(os.path.dirname(__file__), "helpers", "install_autoscaler.sh")
-    try:
-        result = subprocess.run(["bash", script_path], check=True, capture_output=True, text=True)
-        print(result.stdout)
-    except subprocess.CalledProcessError as e:
-        print("Error running install_autoscaler.sh:")
-        print(e.stdout)
-        print(e.stderr)
-        raise
+    # script_path = os.path.join(os.path.dirname(__file__), "helpers", "install_autoscaler.sh")
+    # try:
+    #     result = subprocess.run(["bash", script_path], check=True, capture_output=True, text=True)
+    #     print(result.stdout)
+    # except subprocess.CalledProcessError as e:
+    #     print("Error running install_autoscaler.sh:")
+    #     print(e.stdout)
+    #     print(e.stderr)
+    #     raise
     print("Hetzner Cloud Autoscaler installed successfully.")

@@ -1,3 +1,0 @@
-kubernetes
-hcloud
-jinja2

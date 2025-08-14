@@ -18,14 +18,6 @@ if __name__ == "__main__":
     helpers.export_db_credentials.export({"pgsql_host", "pgsql_port", "pgsql_username", "pgsql_password", "pgsql_dbname"})
     print("Database credentials exported successfully.")
 
-    print("Installing Hetzner Cloud Autoscaler via Helm...")
-    # script_path = os.path.join(os.path.dirname(__file__), "helpers", "install_autoscaler.sh")
-    # try:
-    #     result = subprocess.run(["bash", script_path], check=True, capture_output=True, text=True)
-    #     print(result.stdout)
-    # except subprocess.CalledProcessError as e:
-    #     print("Error running install_autoscaler.sh:")
-    #     print(e.stdout)
-    #     print(e.stderr)
-    #     raise
+    print("Installing Hetzner Cloud Autoscaler...")
+    
     print("Hetzner Cloud Autoscaler installed successfully.")

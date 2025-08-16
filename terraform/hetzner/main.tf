@@ -49,35 +49,35 @@ resource "hcloud_server" "master_node" {
   depends_on = [hcloud_network_subnet.private_network_subnet]
 }
 
-data "template_file" "worker_cloud_init" {
-  template = file("${path.module}/scripts/cloud-init-worker.yaml")
-  vars = {
-    worker_public_key  = file("${path.module}/worker_key.pub")
-    worker_private_key = file("${path.module}/worker_key")
-  }
-}
+# data "template_file" "worker_cloud_init" {
+#   template = file("${path.module}/scripts/cloud-init-worker.yaml")
+#   vars = {
+#     worker_public_key  = file("${path.module}/worker_key.pub")
+#     worker_private_key = file("${path.module}/worker_key")
+#   }
+# }
 
-resource "hcloud_server" "worker-nodes" {
-  count = 1
+# resource "hcloud_server" "worker-nodes" {
+#   count = 1
 
-  # The name will be worker-node-0, worker-node-1, worker-node-2...
-  name        = "worker-node-${count.index}"
-  image       = "ubuntu-24.04"
-  server_type = "cax11"
-  location    = "fsn1"
-  public_net {
-    ipv4_enabled = true
-    ipv6_enabled = false
-  }
-  network {
-    network_id = hcloud_network.private_network.id
-  }
-  user_data = data.template_file.worker_cloud_init.rendered
+#   # The name will be worker-node-0, worker-node-1, worker-node-2...
+#   name        = "worker-node-${count.index}"
+#   image       = "ubuntu-24.04"
+#   server_type = "cax11"
+#   location    = "fsn1"
+#   public_net {
+#     ipv4_enabled = true
+#     ipv6_enabled = false
+#   }
+#   network {
+#     network_id = hcloud_network.private_network.id
+#   }
+#   user_data = data.template_file.worker_cloud_init.rendered
 
-  ssh_keys = [hcloud_ssh_key.worker.id]
+#   ssh_keys = [hcloud_ssh_key.worker.id]
 
-  depends_on = [hcloud_network_subnet.private_network_subnet, hcloud_server.master_node]
-}
+#   depends_on = [hcloud_network_subnet.private_network_subnet, hcloud_server.master_node]
+# }
 
 resource "random_password" "postgresql" {
   length  = 16

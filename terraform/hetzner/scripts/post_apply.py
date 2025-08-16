@@ -1,5 +1,5 @@
 import os
-import helpers.export_kubeconfig
+import helpers.node_export_helper
 import helpers.install_nginx_ingress
 import helpers.export_db_credentials
 
@@ -7,7 +7,7 @@ import subprocess
 
 if __name__ == "__main__":
     print("Exporting and patching kubeconfig...")
-    helpers.export_kubeconfig.export()
+    helpers.node_export_helper.export_kubeconfig()
     print("Kubeconfig exported and patched successfully.")
 
     print("Install nginx ingress controller...")
@@ -19,5 +19,5 @@ if __name__ == "__main__":
     print("Database credentials exported successfully.")
 
     print("Installing Hetzner Cloud Autoscaler...")
-    
+    helpers.node_export_helper.install_k3s_token()
     print("Hetzner Cloud Autoscaler installed successfully.")

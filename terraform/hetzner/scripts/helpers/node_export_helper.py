@@ -9,7 +9,7 @@ def get_master_ip():
 
 def fetch_remote_resource(local_path, remote_path, master_ip):
 	scp_cmd = [
-		"scp", "-o", "StrictHostKeyChecking=accept-new",
+		"scp", "-o", "StrictHostKeyChecking=accept-new", "-v",
 		"-i", "terraform/hetzner/master_key",
 		f"cluster@{master_ip}:{remote_path}", local_path
 	]

@@ -4,8 +4,6 @@ import helpers.node_export_helper
 import helpers.install_remote_resource
 import helpers.export_db_credentials
 
-import subprocess
-
 def render_cloud_init_worker(template_path, output_path, join_token):
     with open(template_path, "r") as f:
         content = f.read()
@@ -27,16 +25,19 @@ if __name__ == "__main__":
 
     print("Installing Hetzner Cloud Autoscaler...")
     join_token = helpers.node_export_helper.get_k3s_token()
+    print("k3s token retrieved successfully.")
     render_cloud_init_worker(
         template_path="scripts/templates/cloud-init-worker.yaml",
         output_path="scripts/templates/cloud-init-worker-rendered.b64",
         join_token=join_token
     )
+    print("cloud worker rendered.")
     render_autoscaler_template(
         template_path="scripts/templates/cluster-autoscaler.yaml",
         output_path="scripts/templates/cluster-autoscaler-rendered.yaml",
         hcloud_cloud_init_b64=open("scripts/templates/cloud-init-worker-rendered.b64").read().strip()
     )
+    print("cluster autoscaler rendered.")
     helpers.install_remote_resource.install_autoscaler()
     print("Hetzner Cloud Autoscaler installed successfully.")
 

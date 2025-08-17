@@ -27,7 +27,7 @@ def create_hcloud_api_secret(hcloud_token, namespace):
         f"--from-literal=network={network_id}"
     ], check=True)
 
-def main(hcloud_token):
+def install_ingress(hcloud_token):
     print("##### Installing nginx ingress controller... ######")
     apply_template("terraform/hetzner/scripts/templates/nginx.yaml")
     print("##### Nginx ingress controller installed successfully. #####")
@@ -40,3 +40,17 @@ def main(hcloud_token):
     create_hcloud_api_secret(hcloud_token=hcloud_token, namespace="kube-system")
     print("##### Hetzner Cloud API token created successfully. #####")
 
+def install_autoscaler():
+    print("##### Installing Hetzner Cloud Autoscaler... #####")
+    apply_template("terraform/hetzner/scripts/templates/cluster-autoscaler-rendered.yaml", namespace="kube-system")
+    print("##### Hetzner Cloud Autoscaler installed successfully. #####")
+
+    print("##### Waiting for autoscaler to be ready... #####")
+    while True:
+        try:
+            subprocess.run(["kubectl", "--kubeconfig", "kubeconfig.yaml", "wait", "--for=condition=ready", "pod", "-l", "app=autoscaler", "-n", "kube-system"], check=True)
+            break
+        except subprocess.CalledProcessError:
+            print(f"Autoscaler not ready yet, checking again at {now_utc()}...")
+            time.sleep(10)
+    print("##### Autoscaler is now ready. #####")

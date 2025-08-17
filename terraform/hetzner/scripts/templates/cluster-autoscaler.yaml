@@ -165,7 +165,7 @@ spec:
             - ./cluster-autoscaler
             - --cloud-provider=hetzner
             - --stderrthreshold=info
-            - --nodes=1:10:CPX11:FSN1:pool1
+            - --nodes=1:3:CPX11:FSN1:pool1
           env:
           - name: HCLOUD_TOKEN
             valueFrom:
@@ -173,11 +173,9 @@ spec:
                   name: hcloud
                   key: token
           - name: HCLOUD_CLOUD_INIT
-            value: base64 -w0 cloud-init-worker.yaml
-          - name: HCLOUD_SSH_KEY
-            value: <optional SSH Key Name or ID>
+            value: {{ hcloud_cloud_init_b64 }}
           - name: HCLOUD_NETWORK
-            value: <optional Network Name or ID>
+            value: kubernetes-cluster
           volumeMounts:
             - name: ssl-certs
               mountPath: /etc/ssl/certs/ca-certificates.crt

@@ -38,18 +38,9 @@ def export_kubeconfig():
     remote_path = "/etc/rancher/k3s/k3s.yaml"
     fetch_remote_resource(local_path, remote_path, master_ip)
     patch_kubeconfig(local_path, master_ip)
-
-
-def install_k3s_token():
-	master_ip = get_master_ip()
-	token_path = "/var/lib/rancher/k3s/server/node-token"
-	token = get_k3s_token(master_ip, token_path)
-	subprocess.run([
-		"kubectl", "--kubeconfig", "kubeconfig.yaml", "create", "secret", "generic",
-		"k3s-node-token", "--from-literal=token=" + token, "-n", "kube-system"
-	], check=True)
 	
-def get_k3s_token(master_ip, token_path = "/var/lib/rancher/k3s/server/node-token"):
+def get_k3s_token(token_path = "/var/lib/rancher/k3s/server/node-token"):
+    master_ip = get_master_ip()
     fetch_remote_resource("k3s_token.txt", token_path, master_ip)
     with open("k3s_token.txt", "r") as f:
         token = f.read().strip()

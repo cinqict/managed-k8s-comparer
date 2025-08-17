@@ -9,7 +9,7 @@ def get_master_ip():
 
 def fetch_remote_resource(local_path, remote_path, master_ip):
 	scp_cmd = [
-		"scp", "-o", "StrictHostKeyChecking=accept-new", "-v",
+		"scp", "-o", "StrictHostKeyChecking=accept-new",
 		"-i", "terraform/hetzner/master_key",
 		f"cluster@{master_ip}:{remote_path}", local_path
 	]
@@ -19,10 +19,10 @@ def fetch_remote_resource(local_path, remote_path, master_ip):
 			return
 		except subprocess.CalledProcessError as _:
 			if attempt < 9:
-				print(f"Attempt {attempt+1} failed, retrying in 5 seconds...")
+				print(f"Attempt {attempt+1} retieving {remote_path} failed, retrying...")
 				time.sleep(5)
 			else:
-				print("All attempts to fetch remote resource failed.")
+				print(f"All attempts to fetch {remote_path} failed.")
 				raise
 
 def patch_kubeconfig(local_path, master_ip):

@@ -39,7 +39,7 @@ def export_kubeconfig():
     fetch_remote_resource(local_path, remote_path, master_ip)
     patch_kubeconfig(local_path, master_ip)
 	
-def get_k3s_token(token_path = "/var/lib/rancher/k3s/server/node-token"):
+def get_k3s_token(token_path = "/var/lib/rancher/k3s/server/token"):
     master_ip = get_master_ip()
     fetch_remote_resource("k3s_token.txt", token_path, master_ip)
     with open("k3s_token.txt", "r") as f:

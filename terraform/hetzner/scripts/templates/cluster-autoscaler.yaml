@@ -202,18 +202,6 @@ spec:
       labels:
         app: busybox-test
     spec:
-      tolerations:
-        - effect: NoSchedule
-          key: node-role.kubernetes.io/control-plane
-        - key: "node.cloudprovider.kubernetes.io/uninitialized"
-          effect: "NoSchedule"
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-              - matchExpressions:
-                  - key: node-role.kubernetes.io/control-plane
-                    operator: Exists
       containers:
         - name: busybox
           image: busybox

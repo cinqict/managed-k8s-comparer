@@ -141,9 +141,8 @@ spec:
       tolerations:
         - effect: NoSchedule
           key: node-role.kubernetes.io/control-plane
-      # Node affinity is used to force cluster-autoscaler to stick
-      # to the control-plane node. This allows the cluster to reliably downscale
-      # to zero worker nodes when needed.
+        - key: "node.cloudprovider.kubernetes.io/uninitialized"
+          effect: "NoSchedule"
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -152,7 +151,7 @@ spec:
                   - key: node-role.kubernetes.io/control-plane
                     operator: Exists
       containers:
-        - image: registry.k8s.io/autoscaling/cluster-autoscaler:latest  # or your custom image
+        - image: registry.k8s.io/autoscaling/cluster-autoscaler:latest
           name: cluster-autoscaler
           resources:
             limits:
@@ -181,8 +180,6 @@ spec:
               mountPath: /etc/ssl/certs/ca-certificates.crt
               readOnly: true
           imagePullPolicy: "Always"
-      imagePullSecrets:
-        - name: gitlab-registry
       volumes:
         - name: ssl-certs
           hostPath:

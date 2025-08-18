@@ -40,23 +40,26 @@ spec:
       serviceAccountName: hcloud-cloud-controller-manager
       dnsPolicy: Default
       tolerations:
-        # Allow HCCM itself to schedule on nodes that have not yet been initialized by HCCM.
         - key: "node.cloudprovider.kubernetes.io/uninitialized"
           value: "true"
           effect: "NoSchedule"
         - key: "CriticalAddonsOnly"
           operator: "Exists"
-
-        # Allow HCCM to schedule on control plane nodes.
         - key: "node-role.kubernetes.io/master"
           effect: NoSchedule
           operator: Exists
         - key: "node-role.kubernetes.io/control-plane"
           effect: NoSchedule
           operator: Exists
-
         - key: "node.kubernetes.io/not-ready"
           effect: "NoExecute"
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: node-role.kubernetes.io/control-plane
+                    operator: Exists
       hostNetwork: true
       containers:
         - name: hcloud-cloud-controller-manager

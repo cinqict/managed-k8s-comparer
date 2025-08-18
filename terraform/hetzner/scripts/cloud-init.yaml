@@ -20,4 +20,5 @@ runcmd:
   - chown cluster:cluster /etc/rancher/k3s/k3s.yaml
   - chmod 644 /etc/rancher/k3s/k3s.yaml
   - chown cluster:cluster /var/lib/rancher/k3s/server/token
-  - chmod 644 /var/lib/rancher/k3s/server/token
+  - chmod 711 /var/lib/rancher/k3s/server
+  - chmod 600 /var/lib/rancher/k3s/server/token

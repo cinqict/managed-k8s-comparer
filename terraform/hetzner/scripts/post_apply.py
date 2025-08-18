@@ -19,10 +19,6 @@ def render_autoscaler_template(template_path, output_path, hcloud_cloud_init_b64
         f.write(rendered)
 
 if __name__ == "__main__":
-    print("Exporting and patching kubeconfig...")
-    helpers.node_export_helper.export_kubeconfig()
-    print("Kubeconfig exported and patched successfully.")
-
     print("Installing Hetzner Cloud Autoscaler...")
     join_token = helpers.node_export_helper.get_k3s_token()
     print("k3s token retrieved successfully.")
@@ -40,6 +36,10 @@ if __name__ == "__main__":
     print("cluster autoscaler rendered.")
     helpers.install_remote_resource.install_autoscaler()
     print("Hetzner Cloud Autoscaler installed successfully.")
+
+    print("Exporting and patching kubeconfig...")
+    helpers.node_export_helper.export_kubeconfig()
+    print("Kubeconfig exported and patched successfully.")
 
     print("Install nginx ingress controller...")
     helpers.install_remote_resource.install_ingress(hcloud_token=os.environ.get("HCLOUD_TOKEN"))

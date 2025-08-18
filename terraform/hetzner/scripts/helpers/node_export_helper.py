@@ -18,9 +18,9 @@ def fetch_remote_resource(local_path, remote_path, master_ip):
 			subprocess.run(scp_cmd, check=True)
 			return
 		except subprocess.CalledProcessError as _:
-			if attempt < 9:
+			if attempt < 19:
 				print(f"Attempt {attempt+1} retieving {remote_path} failed, retrying...")
-				time.sleep(5)
+				time.sleep(10)
 			else:
 				print(f"All attempts to fetch {remote_path} failed.")
 				raise

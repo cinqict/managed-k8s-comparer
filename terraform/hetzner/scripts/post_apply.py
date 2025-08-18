@@ -29,9 +29,11 @@ if __name__ == "__main__":
     print("k3s token retrieved successfully.")
     render_cloud_init_worker(join_token)
     print("cloud worker rendered.")
-    render_autoscaler_template(
-        hcloud_cloud_init_b64=open(os.path.join(os.path.dirname(__file__), "templates", "cloud-init-worker-rendered.b64")).read().strip()
-    )
+    b64_path = os.path.join(os.path.dirname(__file__), "templates", "cloud-init-worker-rendered.b64")
+    with open(b64_path, "r") as f:
+        hcloud_cloud_init_b64 = f.read().strip()
+
+    render_autoscaler_template(hcloud_cloud_init_b64)
     print("cluster autoscaler rendered.")
     helpers.install_remote_resource.install_autoscaler()
     print("Hetzner Cloud Autoscaler installed successfully.")

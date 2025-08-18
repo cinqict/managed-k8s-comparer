@@ -4,14 +4,19 @@ import helpers.node_export_helper
 import helpers.install_remote_resource
 import helpers.export_db_credentials
 
-def render_cloud_init_worker(template_path, output_path, join_token):
+def render_cloud_init_worker(join_token):
+    # Use absolute path to avoid FileNotFoundError
+    template_path = os.path.join(os.path.dirname(__file__), "templates", "cloud-init-worker.yaml")
+    output_path = os.path.join(os.path.dirname(__file__), "templates", "cloud-init-worker-rendered.b64")
     with open(template_path, "r") as f:
         content = f.read()
     rendered = content.replace("{{ k3s_node_token }}", join_token)
     with open(output_path, "w") as f:
         f.write(base64.b64encode(rendered.encode()).decode())
 
-def render_autoscaler_template(template_path, output_path, hcloud_cloud_init_b64):
+def render_autoscaler_template(hcloud_cloud_init_b64):
+    template_path = os.path.join(os.path.dirname(__file__), "templates", "cluster-autoscaler.yaml")
+    output_path = os.path.join(os.path.dirname(__file__), "templates", "cluster-autoscaler-rendered.yaml")
     with open(template_path, "r") as f:
         content = f.read()
     rendered = content.replace("{{ hcloud_cloud_init_b64 }}", hcloud_cloud_init_b64)
@@ -22,16 +27,10 @@ if __name__ == "__main__":
     print("Installing Hetzner Cloud Autoscaler...")
     join_token = helpers.node_export_helper.get_k3s_token()
     print("k3s token retrieved successfully.")
-    render_cloud_init_worker(
-        template_path="scripts/templates/cloud-init-worker.yaml",
-        output_path="scripts/templates/cloud-init-worker-rendered.b64",
-        join_token=join_token
-    )
+    render_cloud_init_worker(join_token)
     print("cloud worker rendered.")
     render_autoscaler_template(
-        template_path="scripts/templates/cluster-autoscaler.yaml",
-        output_path="scripts/templates/cluster-autoscaler-rendered.yaml",
-        hcloud_cloud_init_b64=open("scripts/templates/cloud-init-worker-rendered.b64").read().strip()
+        hcloud_cloud_init_b64=open(os.path.join(os.path.dirname(__file__), "templates", "cloud-init-worker-rendered.b64")).read().strip()
     )
     print("cluster autoscaler rendered.")
     helpers.install_remote_resource.install_autoscaler()

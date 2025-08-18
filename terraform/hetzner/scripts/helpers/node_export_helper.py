@@ -32,31 +32,6 @@ def patch_kubeconfig(local_path, master_ip):
     with open(local_path, "w") as f:
         f.write(content)
 
-def debug_ls_remote_path(remote_path, master_ip):
-    ssh_cmd = [
-        "ssh", "-o", "StrictHostKeyChecking=accept-new",
-        "-i", "terraform/hetzner/master_key",
-        f"cluster@{master_ip}", f"ls -l {remote_path}"
-    ]
-    try:
-        print(f"Listing: {remote_path}")
-        subprocess.run(ssh_cmd, check=True)
-    except subprocess.CalledProcessError:
-        print(f"Failed to list {remote_path}")
-
-def debug_ls_token_path(master_ip):
-    # List each directory level leading to the token file
-    paths = [
-        "/var",
-        "/var/lib",
-        "/var/lib/rancher",
-        "/var/lib/rancher/k3s",
-        "/var/lib/rancher/k3s/server",
-        "/var/lib/rancher/k3s/server/token"
-    ]
-    for path in paths:
-        debug_ls_remote_path(path, master_ip)
-
 def export_kubeconfig():
     master_ip = get_master_ip()
     local_path = "kubeconfig.yaml"
@@ -66,7 +41,6 @@ def export_kubeconfig():
 	
 def get_k3s_token(token_path = "/var/lib/rancher/k3s/server/token"):
     master_ip = get_master_ip()
-    debug_ls_token_path(master_ip)
     fetch_remote_resource("k3s_token.txt", token_path, master_ip)
     with open("k3s_token.txt", "r") as f:
         token = f.read().strip()

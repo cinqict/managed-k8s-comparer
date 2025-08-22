@@ -8,7 +8,6 @@ resource "stackit_network" "network" {
 resource "stackit_network_interface" "k8s_interface" {
   project_id         = var.project_id
   network_id         = stackit_network.network.id
-  allowed_addresses  = stackit_ske_cluster.ske_cluster.pod_address_ranges
 }
 
 ## NIC DB

@@ -50,7 +50,9 @@ def install_autoscaler():
     print("##### Waiting for autoscaler to be ready... #####")
     while True:
         try:
-            subprocess.run(["kubectl", "--kubeconfig", "kubeconfig.yaml", "wait", "--for=condition=ready", "pod", "-l", "app=autoscaler", "-n", "kube-system"], check=True)
+            subprocess.run(["kubectl", "--kubeconfig", "kubeconfig.yaml", "wait", "--for=condition=ready",
+    "pod", "-l", "app=cluster-autoscaler", "-n", "kube-system"
+], check=True)
             break
         except subprocess.CalledProcessError:
             print(f"Autoscaler not ready yet, checking again at {now_utc()}...")

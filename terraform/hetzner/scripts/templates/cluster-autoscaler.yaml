@@ -165,7 +165,6 @@ spec:
             - --cloud-provider=hetzner
             - --stderrthreshold=info
             - --nodes=1:3:CPX11:FSN1:pool1
-            - --hcloud-image=ubuntu-24.04
           env:
           - name: HCLOUD_TOKEN
             valueFrom:
@@ -174,6 +173,8 @@ spec:
                   key: token
           - name: HCLOUD_CLOUD_INIT
             value: {{ hcloud_cloud_init_b64 }}
+          - name: HCLOUD_IMAGE
+            value: ubuntu-24.04
           - name: HCLOUD_NETWORK
             value: kubernetes-cluster
           volumeMounts:

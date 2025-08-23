@@ -3,6 +3,7 @@ import base64
 import helpers.node_export_helper
 import helpers.install_remote_resource
 import helpers.export_db_credentials
+import subprocess
 
 def render_cloud_init_worker(join_token):
     # Use absolute path to avoid FileNotFoundError
@@ -45,6 +46,18 @@ if __name__ == "__main__":
     print("cluster autoscaler rendered.")
     helpers.install_remote_resource.install_autoscaler()
     print("Hetzner Cloud Autoscaler installed successfully.")
+
+    print("### Patching Metrics Server for k3s ###")
+    try:
+        subprocess.run([
+            "kubectl", "--kubeconfig", "kubeconfig.yaml", "patch", "deployment", "metrics-server", "-n", "kube-system",
+            "--type=json",
+            "-p", '[{"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--kubelet-insecure-tls"}]'
+        ], check=True)
+    except subprocess.CalledProcessError as e:
+        print(f"Failed to patch Metrics Server: {e}")
+        exit(1)
+    print("Metrics Server patched successfully.")
 
     print("Exporting database credentials...")
     helpers.export_db_credentials.export({"pgsql_host", "pgsql_port", "pgsql_username", "pgsql_password", "pgsql_dbname"})

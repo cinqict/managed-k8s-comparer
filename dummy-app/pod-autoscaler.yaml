@@ -8,7 +8,7 @@ spec:
     kind: Deployment
     name: dummy-app
   minReplicas: 2
-  maxReplicas: 20
+  maxReplicas: 40
   metrics:
     - type: Resource
       resource:

@@ -59,6 +59,17 @@ if __name__ == "__main__":
         exit(1)
     print("Metrics Server patched successfully.")
 
+    print("### Tainting control-plane nodes to allow scheduling ###")
+    try:
+        subprocess.run([
+            "kubectl", "--kubeconfig", "kubeconfig.yaml", "taint", "nodes", "--all",
+            "node-role.kubernetes.io/control-plane=:NoSchedule"
+        ], check=True)
+    except subprocess.CalledProcessError as e:
+        print(f"Failed to taint control-plane nodes: {e}")
+        exit(1)
+    print("Control-plane nodes tainted successfully.")
+
     print("Exporting database credentials...")
     helpers.export_db_credentials.export({"pgsql_host", "pgsql_port", "pgsql_username", "pgsql_password", "pgsql_dbname"})
     print("Database credentials exported successfully.")

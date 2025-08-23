@@ -189,7 +189,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: busybox-test
-  namespace: default
+  namespace: kube-system
   labels:
     app: busybox-test
 spec:

@@ -94,6 +94,7 @@ jobs:
           OVH_APPLICATION_SECRET: ${{ secrets.OVH_APPLICATION_SECRET }}
           OVH_CONSUMER_KEY: ${{ secrets.OVH_CONSUMER_KEY }}
           OVH_PROJECT_ID: ${{ secrets.OVH_PROJECT_ID }}
+          PYTHONUNBUFFERED: 1
         run: |
           POST_APPLY_SCRIPT="terraform/${{ inputs.csp }}/scripts/post_apply.py"
           if [ -f "$POST_APPLY_SCRIPT" ]; then

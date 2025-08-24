@@ -1,0 +1,17 @@
+#cloud-config
+packages:
+  - curl
+
+write_files:
+  - path: /etc/rancher/k3s/registries.yaml
+    content: |
+      mirrors:
+        "*":
+    permissions: "0644"
+
+runcmd:
+  - apt-get update -y
+  - # wait for the master node to be ready by trying to connect to it
+  - until curl -k https://10.0.1.1:6443; do sleep 5; done
+  - # Install k3s worker using the join token provided by the autoscaler
+  - curl -sfL https://get.k3s.io | K3S_URL=https://10.0.1.1:6443 K3S_TOKEN={{ k3s_node_token }} INSTALL_K3S_EXEC="--kubelet-arg cloud-provider=external" sh -

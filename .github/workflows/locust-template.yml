@@ -50,6 +50,8 @@ jobs:
               break
             fi
             echo "Waiting for external IP... ($i/60)"
+            echo "kubectl get svc dummy-app -o wide output:"
+            kubectl get svc dummy-app -o wide
             sleep 10
           done
           if [ -z "$APP_IP" ]; then
@@ -64,3 +66,4 @@ jobs:
         with:
           name: locust-results
           path: locust_results*.csv
+

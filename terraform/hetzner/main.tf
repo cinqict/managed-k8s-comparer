@@ -38,8 +38,6 @@ resource "hcloud_server" "master_node" {
   }
   network {
     network_id = hcloud_network.private_network.id
-    # IP Used by the master node, needs to be static
-    # Here the worker nodes will use 10.0.1.1 to communicate with the master node
     ip = "10.0.1.1"
   }
 
@@ -49,19 +47,24 @@ resource "hcloud_server" "master_node" {
   depends_on = [hcloud_network_subnet.private_network_subnet]
 }
 
-data "template_file" "worker_cloud_init" {
-  template = file("${path.module}/scripts/cloud-init-worker.yaml")
+resource "random_password" "postgresql" {
+  length  = 16
+  special = true
+  override_special = "_@"
+}
+
+data "template_file" "postgres_cloud_init" {
+  template = file("${path.module}/scripts/cloud-init-postgres.yaml")
   vars = {
-    worker_public_key  = file("${path.module}/worker_key.pub")
-    worker_private_key = file("${path.module}/worker_key")
+    master_public_key = file("${path.module}/master_key.pub")
+    db_user     = var.db_user
+    db_password = random_password.postgresql.result
+    db_name     = var.db_name
   }
 }
 
-resource "hcloud_server" "worker-nodes" {
-  count = 1
-
-  # The name will be worker-node-0, worker-node-1, worker-node-2...
-  name        = "worker-node-${count.index}"
+resource "hcloud_server" "postgresql_server" {
+  name        = "postgresql-db"
   image       = "ubuntu-24.04"
   server_type = "cax11"
   location    = "fsn1"
@@ -71,10 +74,10 @@ resource "hcloud_server" "worker-nodes" {
   }
   network {
     network_id = hcloud_network.private_network.id
+    ip = "10.0.1.10" # Static IP for PostgreSQL
   }
-  user_data = data.template_file.worker_cloud_init.rendered
+  ssh_keys  = [hcloud_ssh_key.master.id]
+  user_data = data.template_file.postgres_cloud_init.rendered
 
-  ssh_keys = [hcloud_ssh_key.worker.id]
-
-  depends_on = [hcloud_network_subnet.private_network_subnet, hcloud_server.master_node]
+  depends_on = [hcloud_network_subnet.private_network_subnet]
 }

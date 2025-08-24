@@ -6,6 +6,10 @@ terraform {
       # Here we use version 1.52.0, this may change in the future
       version = "1.52.0"
     }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.0"
+    }
   }
 
   backend "azurerm" {}
@@ -14,6 +18,8 @@ terraform {
 provider "azurerm" {
   features {}
 }
+
+provider "random" {}
 
 # Configure the Hetzner Cloud Provider with your token
 provider "hcloud" {

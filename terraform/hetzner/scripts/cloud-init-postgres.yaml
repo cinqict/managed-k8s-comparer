@@ -1,0 +1,12 @@
+#cloud-config
+packages:
+  - postgresql
+  - postgresql-contrib
+runcmd:
+  - apt-get update -y
+  - apt-get install -y postgresql postgresql-contrib
+  - sudo -u postgres psql -c "CREATE USER ${db_user} WITH PASSWORD '${db_password}';"
+  - sudo -u postgres psql -c "CREATE DATABASE ${db_name} OWNER ${db_user};"
+  - sed -i "s/#listen_addresses = 'localhost'/listen_addresses = '*'/" /etc/postgresql/*/main/postgresql.conf
+  - sudo echo "host all all 0.0.0.0/0 md5" >> /etc/postgresql/16/main/pg_hba.conf
+  - systemctl restart postgresql

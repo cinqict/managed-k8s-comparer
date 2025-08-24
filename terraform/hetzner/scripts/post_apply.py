@@ -73,11 +73,11 @@ if __name__ == "__main__":
     print("#### Pre stressing worker node ####")
     try:
         subprocess.run([
-            "kubectl", "create", "deployment", "busybox",
+            "kubectl", "--kubeconfig", "kubeconfig.yaml", "create", "deployment", "busybox",
             "--image=busybox", "--replicas=20", "--", "sleep", "3600"
         ], check=True)
         subprocess.run([
-            "kubectl", "patch", "deployment", "busybox",
+            "kubectl", "--kubeconfig", "kubeconfig.yaml", "patch", "deployment", "busybox",
             "--type=json",
             "-p", '[{"op": "add", "path": "/spec/template/spec/containers/0/resources", "value": {"limits": {"cpu": "100m", "memory": "128Mi"}}}]'
         ], check=True)

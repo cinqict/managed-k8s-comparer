@@ -11,10 +11,11 @@ on:
       csp:
         description: 'Select Cloud Service Provider'
         required: true
-        default: 'ovh'
+        default: 'stackit'
         type: choice
         options:
           - azure
+          - stackit
           - ovh
           - hetzner
           - aws

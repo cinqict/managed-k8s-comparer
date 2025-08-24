@@ -10,6 +10,7 @@ on:
         type: choice
         options:
           - ovh
+          - stackit
           - azure
           - hetzner
 
@@ -109,3 +110,30 @@ jobs:
 
       - name: Terraform Destroy
         run: terraform -chdir=terraform/hetzner destroy -auto-approve
+
+  destroy-stackit:
+    if: ${{ github.event.inputs.target == 'stackit' }}
+    runs-on: ubuntu-latest
+    env:
+      TF_VAR_stackit_project_id: ${{ secrets.STACKIT_PROJECT_ID }}
+      ARM_CLIENT_ID: ${{ secrets.AZ_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secrets.AZ_CLIENT_SECRET }}
+      ARM_SUBSCRIPTION_ID: ${{ vars.AZ_SUBSCRIPTION_ID }}
+      ARM_TENANT_ID: ${{ vars.AZ_TENANT_ID }}
+      
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3    
+        with:
+          terraform_version: 1.7.5
+
+      - name: Terraform Init
+        run: |  
+          terraform -chdir=terraform/stackit init --reconfigure \
+            -backend-config="resource_group_name=${{ vars.RESOURCE_GROUP_NAME }}" \
+            -backend-config="storage_account_name=${{ vars.STORAGE_ACCOUNT_NAME }}" \
+            -backend-config="container_name=stackittfstate" \
+            -backend-config="key=terraform.tfstate"

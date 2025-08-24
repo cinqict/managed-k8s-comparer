@@ -19,6 +19,9 @@ jobs:
       TF_VAR_ovh_consumer_key: ${{ inputs.csp == 'ovh' && secrets.OVH_CONSUMER_KEY || '' }}
       TF_VAR_ovh_project_id: ${{ inputs.csp == 'ovh' && secrets.OVH_PROJECT_ID || '' }}
       TF_VAR_resource_group_name: ${{ vars.RESOURCE_GROUP_NAME }}
+      TF_VAR_stackit_service_account_key: ${{ inputs.csp == 'stackit' && secrets.STACKIT_PUBLIC_KEY || '' }}
+      TF_VAR_stackit_private_key: ${{ inputs.csp == 'stackit' && secrets.STACKIT_PRIVATE_KEY || '' }}
+      TF_VAR_stackit_project_id: ${{ inputs.csp == 'stackit' && secrets.STACKIT_PROJECT_ID || '' }}
       ARM_CLIENT_ID: ${{ secrets.AZ_CLIENT_ID }}
       ARM_CLIENT_SECRET: ${{ secrets.AZ_CLIENT_SECRET }}
       ARM_SUBSCRIPTION_ID: ${{ vars.AZ_SUBSCRIPTION_ID }}
@@ -141,7 +144,7 @@ jobs:
 
 
       - name: Export DB credentials to files
-        if: ${{ inputs.csp == 'azure'}}
+        if: ${{ inputs.csp == 'azure' || inputs.csp == 'stackit' }}
         run: |
           terraform -chdir=terraform/${{ inputs.csp }} output -raw pgsql_host > pgsql_host.txt
           terraform -chdir=terraform/${{ inputs.csp }} output -raw pgsql_port > pgsql_port.txt

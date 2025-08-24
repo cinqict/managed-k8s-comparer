@@ -8,7 +8,7 @@ variable stackit_private_key {
   type        = string
 }
 
-variable "project_id" {
+variable "stackit_project_id" {
   description = "The ID of the Stackit project to deploy resources into"
   type        = string
 }

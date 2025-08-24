@@ -1,6 +1,6 @@
 # Networking
 resource "stackit_network" "main" {
-  project_id = var.project_id
+  project_id = var.stackit_project_id
   name       = "main-network"
   routed     = true
   labels = {
@@ -10,7 +10,7 @@ resource "stackit_network" "main" {
 
 # StackIt Kubernetes Engine (SKE) Cluster
 resource "stackit_ske_cluster" "main" {
-  project_id             = var.project_id
+  project_id             = var.stackit_project_id
   name                   = "main-k8s"
   kubernetes_version_min = "1.33"
 
@@ -46,7 +46,7 @@ resource "stackit_ske_kubeconfig" "main" {
 
 # Database
 resource "stackit_postgresflex_instance" "main" {
-  project_id      = var.project_id
+  project_id      = var.stackit_project_id
   name            = "main-pgsql-flex"
   acl             = ["0.0.0.0/0"] # Adjust for your needs
   backup_schedule = "00 00 * * *"
@@ -63,14 +63,14 @@ resource "stackit_postgresflex_instance" "main" {
 }
 
 resource "stackit_postgresflex_database" "main" {
-  project_id  = var.project_id
+  project_id  = var.stackit_project_id
   instance_id = stackit_postgresflex_instance.main.id
   name        = "appdb"
   owner       = "appuser"
 }
 
 resource "stackit_postgresflex_user" "main" {
-  project_id  = var.project_id
+  project_id  = var.stackit_project_id
   instance_id = stackit_postgresflex_instance.main.id
   username    = "appuser"
   roles       = ["readwrite"]

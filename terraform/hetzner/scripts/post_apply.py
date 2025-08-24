@@ -74,7 +74,7 @@ if __name__ == "__main__":
     try:
         subprocess.run([
             "kubectl", "--kubeconfig", "kubeconfig.yaml", "create", "deployment", "busybox",
-            "--image=busybox", "--replicas=20", "--", "sleep", "3600"
+            "--image=busybox", "--replicas=10", "--", "sleep", "3600"
         ], check=True)
         subprocess.run([
             "kubectl", "--kubeconfig", "kubeconfig.yaml", "patch", "deployment", "busybox",

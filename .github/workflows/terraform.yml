@@ -72,19 +72,8 @@ jobs:
           start=$(date +%s)
           terraform -chdir=terraform/${{ inputs.csp }} apply -auto-approve tfplan
           end=$(date +%s)
-          duration=$((end - start))
           echo $start > apply_start.txt
           echo $end > apply_end.txt
-          echo $duration > apply_duration.txt
-
-      - name: Record Terraform apply end time and duration
-        run: python monitoring/record_apply.py
-
-      - name: Upload updated benchmark results artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: benchmark-results-infra
-          path: results.json
 
       - name: Run Post-Apply script
         env: 
@@ -104,6 +93,17 @@ jobs:
           else
             echo "No post-apply steps required for ${{ inputs.csp }}."
           fi
+          end=$(date +%s)
+          echo $end > post_apply_end.txt
+
+      - name: Record Terraform apply end time and duration
+        run: python monitoring/record_apply.py
+
+      - name: Upload updated benchmark results artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results-infra
+          path: results.json
 
       - name: Export kubeconfig
         if: ${{ inputs.csp != 'hetzner' }}

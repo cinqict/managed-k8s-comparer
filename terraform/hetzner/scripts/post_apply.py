@@ -59,7 +59,7 @@ if __name__ == "__main__":
         exit(1)
     print("Metrics Server patched successfully.")
 
-    print("### Tainting control-plane nodes to allow scheduling ###")
+    print("### Tainting control-plane nodes to disallow scheduling ###")
     try:
         subprocess.run([
             "kubectl", "--kubeconfig", "kubeconfig.yaml", "taint", "nodes", "--all",
@@ -69,6 +69,22 @@ if __name__ == "__main__":
         print(f"Failed to taint control-plane nodes: {e}")
         exit(1)
     print("Control-plane nodes tainted successfully.")
+
+    print("#### Pre stressing worker node ####")
+    try:
+        subprocess.run([
+            "kubectl", "create", "deployment", "busybox",
+            "--image=busybox", "--replicas=20", "--", "sleep", "3600"
+        ], check=True)
+        subprocess.run([
+            "kubectl", "patch", "deployment", "busybox",
+            "--type=json",
+            "-p", '[{"op": "add", "path": "/spec/template/spec/containers/0/resources", "value": {"limits": {"cpu": "100m", "memory": "128Mi"}}}]'
+        ], check=True)
+    except subprocess.CalledProcessError as e:
+        print(f"Failed to apply stress on worker node: {e}")
+        exit(1)
+    print("Worker node is being stressed successfully.")
 
     print("Exporting database credentials...")
     helpers.export_db_credentials.export({"pgsql_host", "pgsql_port", "pgsql_username", "pgsql_password", "pgsql_dbname"})

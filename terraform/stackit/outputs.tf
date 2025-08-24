@@ -6,7 +6,7 @@ output "kubeconfig" {
 
 output "pgsql_host" {
   description = "PostgreSQL host"
-  value       = stackit_postgresflex_instance.main.host
+  value       = stackit_postgresflex_instance.main.connection_string
 }
 
 output "pgsql_dbname" {
@@ -32,5 +32,5 @@ output "pgsql_server_name" {
 
 output "pgsql_port" {
   description = "PostgreSQL port"
-  value       = stackit_postgresflex_instance.main.port
+  value       = "5432"
 }

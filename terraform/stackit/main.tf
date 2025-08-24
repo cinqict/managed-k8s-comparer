@@ -41,7 +41,8 @@ resource "stackit_ske_cluster" "main" {
 }
 
 resource "stackit_ske_kubeconfig" "main" {
-  cluster_id = stackit_ske_cluster.main.id
+  cluster_name = stackit_ske_cluster.main.name
+  project_id   = var.project_id
 }
 
 # Database
@@ -73,5 +74,5 @@ resource "stackit_postgresflex_user" "main" {
   project_id  = var.stackit_project_id
   instance_id = stackit_postgresflex_instance.main.id
   username    = "appuser"
-  roles       = ["readwrite"]
+  roles       = ["login"]
 }

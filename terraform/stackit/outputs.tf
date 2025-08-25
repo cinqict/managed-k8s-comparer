@@ -1,6 +1,6 @@
 output "kubeconfig" {
   description = "Kubeconfig for StackIt managed Kubernetes cluster"
-  value       = stackit_ske_kubeconfig.main.kubeconfig
+  value       = stackit_ske_kubeconfig.main.kube_config
   sensitive   = true
 }
 

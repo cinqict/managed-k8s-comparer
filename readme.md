@@ -2,7 +2,7 @@
 
 This repository is used to compare the performance of managed Kubernetes services from different Cloud Service Providers (CSPs), currently implemented are Azure and OVHcloud. It automates the deployment of a dummy application, runs benchmarks, and collects results for analysis.
 
-Hetzner setup implementation based on [tutorial by Alexdru Popescu](https://community.hetzner.com/tutorials/setup-your-own-scalable-kubernetes-cluster)
+Hetzner setup implementation based on the [tutorial by Alexdru Popescu](https://community.hetzner.com/tutorials/setup-your-own-scalable-kubernetes-cluster)
 
 ## Usage
 
@@ -86,24 +86,27 @@ I ran it once for both CSPs (OVH & Azure) and got the following results:
 {
   "csp": "azure",
   "terraform_apply": {
-    "start": "2025-06-23T13:17:06+00:00",
-    "end": "2025-06-23T13:25:20+00:00",
-    "duration_seconds": 494
+    "tf_start": "2025-08-24T09:50:34+00:00",
+    "tf_end": "2025-08-24T09:56:47+00:00",
+    "tf_duration_seconds": 373,
+    "post_apply_end": "2025-08-24T09:56:47+00:00",
+    "post_apply_duration_seconds": 0,
+    "total_duration_seconds": 373
   },
   "external_ip": {
-    "start": "2025-06-23T13:29:10.648931+00:00",
-    "end": "2025-06-23T13:29:31.389670+00:00",
+    "start": "2025-08-24T09:58:49.044349+00:00",
+    "end": "2025-08-24T09:59:09.802208+00:00",
     "duration_seconds": 20,
-    "ip": "20.67.58.192"
+    "ip": "132.220.38.91"
   },
   "scaleup": {
-    "scaleup_triggered": "2025-06-23T13:32:14+00:00",
-    "node_ready": "2025-06-23T13:33:08+00:00",
-    "first_pod": "2025-06-23T13:33:08+00:00",
-    "node_name": "aks-default-11086619-vmss000001",
-    "dur_scaleup_to_ready": 54.0,
-    "dur_ready_to_pod": 0.0,
-    "dur_scaleup_to_pod": 54.0
+    "scaleup_triggered": "2025-08-24T10:01:28+00:00",
+    "node_ready": "2025-08-24T10:02:50+00:00",
+    "first_pod": "2025-08-24T10:02:35+00:00",
+    "node_name": "aks-default-26398082-vmss000001",
+    "dur_scaleup_to_ready": 82.0,
+    "dur_ready_to_pod": -15.0,
+    "dur_scaleup_to_pod": 67.0
   }
 }
 ```
@@ -115,41 +118,83 @@ I ran it once for both CSPs (OVH & Azure) and got the following results:
 {
   "csp": "ovh",
   "terraform_apply": {
-    "start": "2025-07-13T19:08:32+00:00",
-    "end": "2025-07-13T19:15:14+00:00",
-    "duration_seconds": 402
+    "tf_start": "2025-08-24T14:13:48+00:00",
+    "tf_end": "2025-08-24T14:20:58+00:00",
+    "tf_duration_seconds": 430,
+    "post_apply_end": "2025-08-24T14:20:58+00:00",
+    "post_apply_duration_seconds": 0,
+    "total_duration_seconds": 430
   },
   "external_ip": {
-    "start": "2025-07-13T19:16:14.285706+00:00",
-    "end": "2025-07-13T19:19:18.992363+00:00",
-    "duration_seconds": 184,
-    "ip": "37.59.24.5"
+    "start": "2025-08-24T14:21:54.544977+00:00",
+    "end": "2025-08-24T14:24:30.827427+00:00",
+    "duration_seconds": 156,
+    "ip": "51.178.114.67"
   },
   "scaleup": {
-    "scaleup_triggered": "2025-07-13T19:22:01+00:00",
-    "node_ready": "2025-07-13T19:24:18+00:00",
-    "first_pod": "2025-07-13T19:24:16+00:00",
-    "node_name": "default-node-c925e7",
-    "dur_scaleup_to_ready": 137.0,
-    "dur_ready_to_pod": -2.0,
-    "dur_scaleup_to_pod": 135.0
+    "scaleup_triggered": "2025-08-24T14:26:58+00:00",
+    "node_ready": "2025-08-24T14:29:31+00:00",
+    "first_pod": "2025-08-24T14:29:27+00:00",
+    "node_name": "default-node-804fb0",
+    "dur_scaleup_to_ready": 153.0,
+    "dur_ready_to_pod": -4.0,
+    "dur_scaleup_to_pod": 149.0
   }
 }
 ```
 
 </td>
   </tr>
+  <tr>
+<td>
+
+```json
+{
+  "csp": "hetzner",
+  "terraform_apply": {
+    "tf_start": "2025-08-24T09:02:44+00:00",
+    "tf_end": "2025-08-24T09:03:35+00:00",
+    "tf_duration_seconds": 51,
+    "post_apply_end": "2025-08-24T09:04:39+00:00",
+    "post_apply_duration_seconds": 64,
+    "total_duration_seconds": 115
+  },
+  "external_ip": {
+    "start": "2025-08-24T09:05:16.060347+00:00",
+    "end": "2025-08-24T09:05:43.328797+00:00",
+    "duration_seconds": 27,
+    "ip": "91.98.15.226"
+  },
+  "scaleup": {
+    "scaleup_triggered": "2025-08-24T09:06:57+00:00",
+    "node_ready": "2025-08-24T09:07:25+00:00",
+    "first_pod": "2025-08-24T09:07:25+00:00",
+    "node_name": "pool1-1a722db4343937e4",
+    "dur_scaleup_to_ready": 28.0,
+    "dur_ready_to_pod": 0.0,
+    "dur_scaleup_to_pod": 28.0
+  }
+}
+```
+</td>
+<td>
+
+```json
+{}
+```
+</td>
+  </tr>
 </table>
 
 ---
 
-| Metric                         | Azure | OVH    |
-|--------------------------------|-------|--------|
-| Terraform apply duration (s)   | 494   | 402    |
-| External IP availability (s)   | 20    | 184    |
-| Scaleup to ready (s)           | 54.0  | 137.0  |
-| Ready to pod (s)               | 0.0   | -2.0   |
-| Scaleup to pod (s)             | 54.0  | 135.0  |
+| Metric                         | Azure | OVH    | Hetzner | StackIt |
+|--------------------------------|-------|--------|---------|---------|
+| Terraform apply duration (s)   | 373   | 430    | 115     |         |
+| External IP availability (s)   | 20    | 156    | 27      |         |
+| Scaleup to ready (s)           | 82.0  | 153.0  | 28.0    |         |
+| Ready to pod (s)               | -15.0 | -4.0   | 0.0     |         |
+| Scaleup to pod (s)             | 67.0  | 149.0  | 28.0    |         |
 
 ### Metrics Explained
 
@@ -172,6 +217,6 @@ These metrics help compare the responsiveness and provisioning speed of managed 
 
 ## Cleaning Up
 Don't forget to remove your provisioned resources once you are done.
-For this the Workflows `Terraform OVH Destroy` and `Terraform Azure Destroy` are provided.
+For this the Workflow `Terraform Destroy` is provided.
 
 **NOTE** For some reason the terraform destroy command for OVH can't destroy private networks. Remove it manually if it bothers you.

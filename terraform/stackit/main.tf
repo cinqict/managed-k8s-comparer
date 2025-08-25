@@ -25,7 +25,7 @@ resource "stackit_ske_cluster" "main" {
       minimum            = 1
       maximum            = 3
       availability_zones = ["eu01-1"]
-      os_version_min     = "3815.2.5"
+  os_version_min     = "4230.2.1"
       os_name            = "flatcar"
       volume_size        = 32
       volume_type        = "storage_premium_perf6"
@@ -65,14 +65,14 @@ resource "stackit_postgresflex_instance" "main" {
 
 resource "stackit_postgresflex_user" "main" {
   project_id  = var.stackit_project_id
-  instance_id = stackit_postgresflex_instance.main.id
+  instance_id = stackit_postgresflex_instance.main.instance_id
   username    = "appuser"
   roles       = ["login","createdb"]
 }
 
 resource "stackit_postgresflex_database" "main" {
   project_id  = var.stackit_project_id
-  instance_id = stackit_postgresflex_instance.main.id
+  instance_id = stackit_postgresflex_instance.main.instance_id
   name        = "appdb"
   owner       = "appuser"
 }

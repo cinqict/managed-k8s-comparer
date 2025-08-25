@@ -31,6 +31,10 @@ Hetzner setup implementation based on [tutorial by Alexdru Popescu](https://comm
     - Create Hetzner account at https://accounts.hetzner.com/signUp
     - Create project
     - Create API token (project → security → API tokens)
+   - If using Stackit
+    - Create Stackit account (requires an invite, ask Bouke)
+    - Create a project in the CINQ Organization at https://portal.stackit.cloud/organization/68e8593b-2b3c-4c6f-8a72-dfb81f47926e
+    - Create a service account (IAM → Service Accounts → Create)
 
 ### Required Secrets
 
@@ -44,7 +48,10 @@ Hetzner setup implementation based on [tutorial by Alexdru Popescu](https://comm
 | `OVH_APPLICATION_SECRET` | OVH API application key                     | Yes         | [OVH API Credentials](https://www.ovh.com/auth/api/createToken?GET=/*&POST=/*&PUT=/*&DELETE=/*)     |
 | `OVH_CONSUMER_KEY`       | OVH API consumer key                        | Yes         | [OVH API Credentials](https://www.ovh.com/auth/api/createToken?GET=/*&POST=/*&PUT=/*&DELETE=/*)     |
 | `OVH_PROJECT_ID`         | OVH Public Cloud project ID                 | Yes         | OVHcloud Control Panel → Public Cloud → Project Info      |
-| `HETZNER_API_TOKEN`       | Read & Write token for Hetzner Terraform    | Yes         | [Hetzner Console](https://console.hetzner.com) → Security → API Tokens       |
+| `HETZNER_API_TOKEN`      | Read & Write token for Hetzner Terraform    | Yes         | [Hetzner Console](https://console.hetzner.com) → Security → API Tokens       |
+| `STACKIT_PUBLIC_KEY`     | Service Account Credentials for Stackit     | Yes         | [Stackit Portal](https://portal.stackit.cloud/service-accounts/wizard?project=cdae8eed-9d4f-49d4-a059-9fe987c52735) → Service Accounts       |
+| `STACKIT_PRIVATE_KEY`    | Service Account Credentials for Stackit     | Yes         | [Stackit Portal](https://portal.stackit.cloud/service-accounts/wizard?project=cdae8eed-9d4f-49d4-a059-9fe987c52735) → Service Accounts       |
+| `STACKIT_PROJECT_ID`     | Project ID for Terraform Deployment         | Yes         | [Stackit Portal](https://portal.stackit.cloud/organization/68e8593b-2b3c-4c6f-8a72-dfb81f47926e) → Select Project → Create Resource       |
 
 ### Required Variables
 

@@ -22,7 +22,7 @@ provider "azurerm" {
 }
 
 provider "stackit" {
-  default_region      = "eu01"
+  default_region      = var.region
   service_account_key = var.stackit_service_account_key
   private_key         = var.stackit_private_key
 }

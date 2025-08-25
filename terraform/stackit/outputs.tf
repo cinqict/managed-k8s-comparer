@@ -6,7 +6,7 @@ output "kubeconfig" {
 
 output "pgsql_host" {
   description = "PostgreSQL host"
-  value       = stackit_postgresflex_instance.main.connection_string
+  value       = "${stackit_postgresflex_instance.main.instance_id}.postgresql.${var.region}.onstackit.cloud"
 }
 
 output "pgsql_dbname" {

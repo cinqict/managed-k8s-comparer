@@ -42,7 +42,7 @@ resource "stackit_ske_cluster" "main" {
 
 resource "stackit_ske_kubeconfig" "main" {
   cluster_name = stackit_ske_cluster.main.name
-  project_id   = var.project_id
+  project_id   = var.stackit_project_id
 }
 
 # Database
@@ -63,16 +63,16 @@ resource "stackit_postgresflex_instance" "main" {
   version = 15
 }
 
+resource "stackit_postgresflex_user" "main" {
+  project_id  = var.stackit_project_id
+  instance_id = stackit_postgresflex_instance.main.id
+  username    = "appuser"
+  roles       = ["login","createdb"]
+}
+
 resource "stackit_postgresflex_database" "main" {
   project_id  = var.stackit_project_id
   instance_id = stackit_postgresflex_instance.main.id
   name        = "appdb"
   owner       = "appuser"
-}
-
-resource "stackit_postgresflex_user" "main" {
-  project_id  = var.stackit_project_id
-  instance_id = stackit_postgresflex_instance.main.id
-  username    = "appuser"
-  roles       = ["login"]
 }

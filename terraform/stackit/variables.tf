@@ -12,3 +12,9 @@ variable "stackit_project_id" {
   description = "The ID of the Stackit project to deploy resources into"
   type        = string
 }
+
+variable "region" {
+  description = "The region to deploy resources into"
+  type        = string
+  default     = "eu01"
+}

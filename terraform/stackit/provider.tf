@@ -24,7 +24,6 @@ provider "azurerm" {
 provider "stackit" {
   default_region      = var.region
   service_account_key = var.stackit_service_account_key
-  private_key         = var.stackit_private_key
 }
 
 provider "random" {}

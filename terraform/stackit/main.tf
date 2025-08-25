@@ -14,9 +14,6 @@ resource "stackit_ske_cluster" "main" {
   name                   = "main-k8s"
   kubernetes_version_min = "1.33"
 
-  network = {
-    id = stackit_network.main.network_id
-  }
 
   node_pools = [
     {
@@ -75,4 +72,5 @@ resource "stackit_postgresflex_database" "main" {
   instance_id = stackit_postgresflex_instance.main.instance_id
   name        = "appdb"
   owner       = "appuser"
+  depends_on  = [stackit_postgresflex_user.main]
 }

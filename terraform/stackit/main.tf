@@ -15,7 +15,7 @@ resource "stackit_ske_cluster" "main" {
   kubernetes_version_min = "1.33"
 
   network = {
-    id = stackit_network.main.id
+    id = stackit_network.main.network_id
   }
 
   node_pools = [
@@ -57,7 +57,7 @@ resource "stackit_postgresflex_instance" "main" {
   }
   replicas = 1
   storage = {
-    class = "standard"
+    class = "premium-perf6-stackit"
     size  = 20
   }
   version = 15

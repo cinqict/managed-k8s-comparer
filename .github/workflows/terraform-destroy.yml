@@ -140,4 +140,4 @@ jobs:
             -backend-config="key=terraform.tfstate"
 
       - name: Terraform Destroy
-        run: terraform -chdir=terraform/hetzner destroy -auto-approve
+        run: terraform -chdir=terraform/stackit destroy -auto-approve

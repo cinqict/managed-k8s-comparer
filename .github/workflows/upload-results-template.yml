@@ -1,7 +1,11 @@
 name: Upload Results artifact to Azure Blob Storage
 
 on:
-  workflow_dispatch:
+  workflow_call:
+    inputs:
+      csp:
+        required: true
+        type: string
 
 jobs:
   upload-template:
@@ -14,25 +18,18 @@ jobs:
       with:
         name: benchmark-results
         path: .
-    - name: Set up Azure CLI
-      uses: azure/cli@v2
-
-    - name: Azure Login
-      uses: azure/login@v2
+    - name: Set up Python
+      uses: actions/setup-python@v5
       with:
-        client-id: ${{ secrets.AZURE_CLIENT_ID }}
-        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-        allow-no-subscriptions: true
-
-    - name: Upload results template to Azure Blob Storage
+        python-version: '3.x'
+    - name: Install Azure SDK
+      run: pip install azure-identity azure-storage-blob
+    - name: Upload results to Azure Blob Storage
       env:
         AZURE_STORAGE_ACCOUNT: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
-        CONTAINER_NAME: ${{ secrets.AZURE_CONTAINER_NAME }}
+        PYTHONBUFFERED: 1
       run: |
-        az storage blob upload \
-        --account-name $AZURE_STORAGE_ACCOUNT \
-        --container-name $CONTAINER_NAME \
-        --file path/to/results-template.xlsx \
-        --name results-template.xlsx \
-        --overwrite true
+        python scripts/common/upload_benchmark_result.py \
+          --file results.json \
+          --container benchmark-results \
+          --blob ${{ github.event.inputs.csp }}-${{ github.run_id }}-results.json

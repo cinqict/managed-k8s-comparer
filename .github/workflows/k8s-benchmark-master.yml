@@ -76,10 +76,12 @@ jobs:
     uses: ./.github/workflows/measure-scaleup-template.yml
     secrets: inherit
 
-  # upload_results:
-  #   needs: measure_scaleup
-  #   uses: ./.github/workflows/upload-results-template.yml
-  #   secrets: inherit
+  upload_results:
+    needs: measure_scaleup
+    uses: ./.github/workflows/upload-results-template.yml
+    secrets: inherit
+    with:
+      csp: ${{ github.event.inputs.csp }}
     
   destroy:
     if: ${{ github.event.inputs.demo_mode != 'true'}}

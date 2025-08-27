@@ -90,6 +90,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Delete all Hetzner resources via script
+        env:
+          HCLOUD_TOKEN: ${{ secrets.HETZNER_API_TOKEN }}
+        run: |
+          python3 -m pip install requests
+          python3 scripts/hetzner/destroy.py
+
       - name: Generate dummy SSH keys (Hetzner destroy)
         run: |
           ssh-keygen -t ed25519 -f terraform/hetzner/master_key -N ""

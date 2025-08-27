@@ -8,6 +8,15 @@ on:
         required: false
         default: false
         type: boolean
+      loadtest:
+        description: 'Load test to run'
+        required: false
+        default: 'none'
+        type: choice
+        options:
+          - none
+          - locust
+          - scaleup
       csp:
         description: 'Select Cloud Service Provider'
         required: true
@@ -61,6 +70,8 @@ jobs:
       demo_mode: ${{ github.event.inputs.demo_mode == 'true' }}
 
   measure_scaleup:
+    if: ${{ github.event.inputs.loadtest == 'locust' }}
     needs: locust
     uses: ./.github/workflows/measure-scaleup-template.yml
     secrets: inherit
+    

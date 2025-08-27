@@ -32,15 +32,31 @@ def count_running():
 def main():
 	print("Starting scale-up test...")
 	replicas = get_replicas()
+	initial_nodes = set()
+	# Get initial nodes running dummy-app pods
+	out = run(f"kubectl get pods -l {LABEL} -o json")
+	data = json.loads(out)
+	for pod in data['items']:
+		node = pod['spec'].get('nodeName')
+		if node:
+			initial_nodes.add(node)
+
 	while True:
 		replicas += 1
 		set_replicas(replicas)
 		print(f"Scaled to {replicas} replicas.")
-		time.sleep(2)
-		pending = count_pending()
-		print(f"Pending pods: {pending}")
-		if pending > 1:
-			print("More than 1 pending pod detected. Stopping scale-up.")
+		time.sleep(5)
+		out = run(f"kubectl get pods -l {LABEL} -o json")
+		data = json.loads(out)
+		current_nodes = set()
+		for pod in data['items']:
+			node = pod['spec'].get('nodeName')
+			if node:
+				current_nodes.add(node)
+		new_nodes = current_nodes - initial_nodes
+		print(f"Current nodes: {current_nodes}, New nodes: {new_nodes}")
+		if new_nodes:
+			print(f"Pod(s) scheduled on new node(s): {new_nodes}. Stopping scale-up.")
 			break
 
 	print("Waiting for all pods to be scheduled...")

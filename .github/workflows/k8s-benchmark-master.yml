@@ -62,26 +62,23 @@ jobs:
     uses: ./.github/workflows/measure-external-ip-template.yml
     secrets: inherit
 
-  locust:
-    if: ${{ github.event.inputs.loadtest == 'locust' }}
+  loadtest:
     needs: app_ci
-    uses: ./.github/workflows/locust-template.yml
-    secrets: inherit
-    with:
-      demo_mode: ${{ github.event.inputs.demo_mode == 'true' }}
-
-  scaleup:
-    if: ${{ github.event.inputs.loadtest == 'scaleup' }}
-    needs: app_ci
-    uses: ./.github/workflows/scaleup-template.yml
-    secrets: inherit
-    with:
-      demo_mode: ${{ github.event.inputs.demo_mode == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Locust
+        if: ${{ github.event.inputs.loadtest == 'locust' }}
+        uses: ./.github/workflows/locust-template.yml
+        with:
+          demo_mode: ${{ github.event.inputs.demo_mode == 'true' }}
+      - name: Run Scaleup
+        if: ${{ github.event.inputs.loadtest == 'scaleup' }}
+        uses: ./.github/workflows/scaleup-template.yml
+        with:
+          demo_mode: ${{ github.event.inputs.demo_mode == 'true' }}
 
   measure_scaleup:
-    needs: 
-      - locust
-      - scaleup
+    needs: loadtest
     uses: ./.github/workflows/measure-scaleup-template.yml
     secrets: inherit
     

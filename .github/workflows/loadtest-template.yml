@@ -1,12 +1,16 @@
-name: 'Locust Loadtest'
+name: 'Loadtest'
 on:
   workflow_call:
     inputs:
       demo_mode:
         required: false
         type: boolean
+      loadtest:
+        required: false
+        type: string
+        default: 'locust'
 jobs:
-  locust:
+  loadtest:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -22,14 +26,18 @@ jobs:
         uses: azure/setup-kubectl@v3
         with:
           version: 'latest'
+      # LOCUST LOAD TEST STEPS
       - name: Add Locust Helm repo
+        if: ${{ inputs.loadtest == 'locust' }}
         run: |
           helm repo add deliveryhero https://charts.deliveryhero.io/
           helm repo update
       - name: Create Locustfile ConfigMap
+        if: ${{ inputs.loadtest == 'locust' }}
         run: |
           kubectl create configmap my-loadtest-locustfile --from-file=main.py=dummy-app/locustfile.py --dry-run=client -o yaml | kubectl apply -f -
       - name: Install Locust with Helm (OCI)
+        if: ${{ inputs.loadtest == 'locust' }}
         run: |
           helm upgrade --install locust oci://ghcr.io/deliveryhero/helm-charts/locust \
             --version 0.32.6 \
@@ -39,7 +47,7 @@ jobs:
             --set loadtest.name=my-loadtest \
             --set loadtest.locust_locustfile_configmap=my-loadtest-locustfile
       - name: Trigger Locust load test
-        if: ${{ !inputs.demo_mode }}
+        if: ${{ inputs.loadtest == 'locust' && !inputs.demo_mode }}
         run: |
           pip install locust
           # Wait up to 10 minutes for the external IP
@@ -61,9 +69,21 @@ jobs:
           locust -f dummy-app/locustfile.py --headless -u 400 -r 10 -t 300s --host http://$APP_IP --csv locust_results --exit-code-on-error 0
         shell: bash
       - name: Upload Locust results
-        if: ${{ !inputs.demo_mode }}
+        if: ${{ inputs.loadtest == 'locust' && !inputs.demo_mode }}
         uses: actions/upload-artifact@v4
         with:
           name: locust-results
           path: locust_results*.csv
+      # SCALE-UP LOAD TEST STEPS
+      - name: Set up Python
+        if: ${{ inputs.loadtest == 'scaleup' }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Install dependencies
+        if: ${{ inputs.loadtest == 'scaleup' }}
+        run: pip install --upgrade pip && pip install kubernetes
+      - name: Run scale-up loadtest
+        if: ${{ inputs.loadtest == 'scaleup' }}
+        run: python scripts/common/scaleup-loadtest.py
 

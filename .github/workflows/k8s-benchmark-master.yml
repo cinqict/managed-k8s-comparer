@@ -63,19 +63,13 @@ jobs:
     secrets: inherit
 
   loadtest:
+    if: ${{ github.event.inputs.loadtest != 'none' }}
     needs: app_ci
-    runs-on: ubuntu-latest
-    steps:
-      - name: Run Locust
-        if: ${{ github.event.inputs.loadtest == 'locust' }}
-        uses: ./.github/workflows/locust-template.yml
-        with:
-          demo_mode: ${{ github.event.inputs.demo_mode == 'true' }}
-      - name: Run Scaleup
-        if: ${{ github.event.inputs.loadtest == 'scaleup' }}
-        uses: ./.github/workflows/scaleup-template.yml
-        with:
-          demo_mode: ${{ github.event.inputs.demo_mode == 'true' }}
+    uses: ./.github/workflows/loadtest-template.yml
+    secrets: inherit
+    with:
+      demo_mode: ${{ github.event.inputs.demo_mode == 'true' }}
+      loadtest: ${{ github.event.inputs.loadtest }}
 
   measure_scaleup:
     needs: loadtest
@@ -83,7 +77,7 @@ jobs:
     secrets: inherit
     
   destroy:
-    if: ${{ github.event.inputs.demo_mode != 'true' }}
+    if: ${{ github.event.inputs.demo_mode}}
     needs: measure_scaleup
     uses: ./.github/workflows/terraform-destroy.yml
     secrets: inherit

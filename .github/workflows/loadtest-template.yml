@@ -86,4 +86,6 @@ jobs:
       - name: Run scale-up loadtest
         if: ${{ inputs.loadtest == 'scaleup' }}
         run: python scripts/common/scaleup-loadtest.py
+        env:
+          PYTHONUNBUFFERED: 1
 

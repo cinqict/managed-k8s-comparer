@@ -14,12 +14,19 @@ def main():
     args = parser.parse_args()
 
     account_name = os.environ.get('AZURE_STORAGE_ACCOUNT')
+    client_id = os.environ.get('AZURE_CLIENT_ID')
+    tenant_id = os.environ.get('AZURE_TENANT_ID')
+    client_secret = os.environ.get('AZURE_CLIENT_SECRET')
     if not account_name:
         print("AZURE_STORAGE_ACCOUNT environment variable not set.")
         sys.exit(1)
+    if not all([client_id, tenant_id, client_secret]):
+        print("Azure SPN environment variables not set.")
+        sys.exit(1)
 
-    # Authenticate using DefaultAzureCredential (works with SPN, GitHub Actions, etc.)
-    credential = DefaultAzureCredential()
+    # Authenticate using ClientSecretCredential (SPN)
+    from azure.identity import ClientSecretCredential
+    credential = ClientSecretCredential(tenant_id, client_id, client_secret)
     blob_url = f"https://{account_name}.blob.core.windows.net"
     blob_service_client = BlobServiceClient(account_url=blob_url, credential=credential)
 

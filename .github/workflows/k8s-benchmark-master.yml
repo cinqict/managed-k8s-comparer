@@ -77,7 +77,7 @@ jobs:
     secrets: inherit
     
   destroy:
-    if: ${{ github.event.inputs.demo_mode}}
+    if: ${{ github.event.inputs.demo_mode == 'false'}}
     needs: measure_scaleup
     uses: ./.github/workflows/terraform-destroy.yml
     secrets: inherit

@@ -59,11 +59,5 @@ def main():
 			print(f"Pod(s) scheduled on new node(s): {new_nodes}. Stopping scale-up.")
 			break
 
-	print("Waiting for all pods to be scheduled...")
-	while count_pending() > 0:
-		print(f"Pending pods: {count_pending()}")
-		time.sleep(5)
-	print("All pods scheduled and running.")
-
 if __name__ == "__main__":
 	main()

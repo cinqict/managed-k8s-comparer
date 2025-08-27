@@ -179,7 +179,32 @@ I ran it once for both CSPs (OVH & Azure) and got the following results:
 <td>
 
 ```json
-{}
+{
+  "csp": "stackit",
+  "terraform_apply": {
+    "tf_start": "2025-08-25T12:30:41+00:00",
+    "tf_end": "2025-08-25T12:39:23+00:00",
+    "tf_duration_seconds": 522,
+    "post_apply_end": "2025-08-25T12:39:23+00:00",
+    "post_apply_duration_seconds": 0,
+    "total_duration_seconds": 522
+  },
+  "external_ip": {
+    "start": "2025-08-25T12:41:16.493724+00:00",
+    "end": "2025-08-25T12:43:07.742957+00:00",
+    "duration_seconds": 111,
+    "ip": "188.34.95.114"
+  },
+  "scaleup": {
+    "scaleup_triggered": "2025-08-25T12:39:12+00:00",
+    "node_ready": "2025-08-25T12:40:27+00:00",
+    "first_pod": "2025-08-25T12:40:20+00:00",
+    "node_name": "shoot--b96b974a65--main-k8s-main-node-pool-z1-5dcbf-2w9zj",
+    "dur_scaleup_to_ready": 75.0,
+    "dur_ready_to_pod": -7.0,
+    "dur_scaleup_to_pod": 68.0
+  }
+}
 ```
 </td>
   </tr>
@@ -189,11 +214,11 @@ I ran it once for both CSPs (OVH & Azure) and got the following results:
 
 | Metric                         | Azure | OVH    | Hetzner | StackIt |
 |--------------------------------|-------|--------|---------|---------|
-| Terraform apply duration (s)   | 373   | 430    | 115     |         |
-| External IP availability (s)   | 20    | 156    | 27      |         |
-| Scaleup to ready (s)           | 82.0  | 153.0  | 28.0    |         |
-| Ready to pod (s)               | -15.0 | -4.0   | 0.0     |         |
-| Scaleup to pod (s)             | 67.0  | 149.0  | 28.0    |         |
+| Terraform apply duration (s)   | 373   | 430    | 115     | 522     |
+| External IP availability (s)   | 20    | 156    | 27      | 111     |
+| Scaleup to ready (s)           | 82.0  | 153.0  | 28.0    | 75.0    |
+| Ready to pod (s)               | -15.0 | -4.0   | 0.0     | -7.0    |
+| Scaleup to pod (s)             | 67.0  | 149.0  | 28.0    | 68.0    |
 
 ### Metrics Explained
 

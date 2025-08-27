@@ -45,7 +45,7 @@ def main():
 		replicas += 1
 		set_replicas(replicas)
 		print(f"Scaled to {replicas} replicas.")
-		time.sleep(5)
+		time.sleep(8)
 		out = run(f"kubectl get pods -l {LABEL} -o json")
 		data = json.loads(out)
 		current_nodes = set()

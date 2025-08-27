@@ -1,0 +1,33 @@
+name: 'Scaleup Only Loadtest'
+on:
+  workflow_call:
+    inputs:
+      demo_mode:
+        required: false
+        type: boolean
+jobs:
+  locust:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Download kubeconfig artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: kubeconfig
+          path: .
+      - name: Set KUBECONFIG env var
+        run: echo "KUBECONFIG=$GITHUB_WORKSPACE/kubeconfig.yaml" >> $GITHUB_ENV
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Install dependencies
+        run: pip install --upgrade pip && pip install kubernetes
+      - name: Run scale-up loadtest
+        run: python scripts/common/scaleup-loadtest.py
+

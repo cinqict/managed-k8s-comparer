@@ -63,15 +63,32 @@ jobs:
     secrets: inherit
 
   locust:
+    if: ${{ github.event.inputs.loadtest == 'locust' }}
     needs: app_ci
     uses: ./.github/workflows/locust-template.yml
     secrets: inherit
     with:
       demo_mode: ${{ github.event.inputs.demo_mode == 'true' }}
 
+  scaleup:
+    if: ${{ github.event.inputs.loadtest == 'scaleup' }}
+    needs: app_ci
+    uses: ./.github/workflows/scaleup-template.yml
+    secrets: inherit
+    with:
+      demo_mode: ${{ github.event.inputs.demo_mode == 'true' }}
+
   measure_scaleup:
-    if: ${{ github.event.inputs.loadtest == 'locust' }}
-    needs: locust
+    needs: 
+      - locust
+      - scaleup
     uses: ./.github/workflows/measure-scaleup-template.yml
     secrets: inherit
     
+  destroy:
+    if: ${{ github.event.inputs.demo_mode != 'true' }}
+    needs: measure_scaleup
+    uses: ./.github/workflows/terraform-destroy.yml
+    secrets: inherit
+    with:
+      target: ${{ github.event.inputs.csp || 'ovh' }}

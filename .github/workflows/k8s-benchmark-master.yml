@@ -72,7 +72,7 @@ jobs:
       loadtest: ${{ github.event.inputs.loadtest }}
 
   measure_scaleup:
-    needs: loadtest
+    needs: [loadtest, measure_external_ip]
     uses: ./.github/workflows/measure-scaleup-template.yml
     secrets: inherit
     

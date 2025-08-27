@@ -56,11 +56,11 @@ def main():
             node = pod['spec'].get('nodeName')
             if node:
                 current_nodes.add(node)
-            new_nodes = current_nodes - initial_nodes
-            print(f"Current nodes: {current_nodes}, New nodes: {new_nodes}")
-            if new_nodes:
-                print(f"Pod(s) scheduled on new node(s): {new_nodes}. Stopping scale-up.")
-                break
+        new_nodes = current_nodes - initial_nodes
+        print(f"Current nodes: {current_nodes}, New nodes: {new_nodes}")
+        if new_nodes:
+            print(f"Pod(s) scheduled on new node(s): {new_nodes}. Stopping scale-up.")
+            break
 
 if __name__ == "__main__":
 	main()

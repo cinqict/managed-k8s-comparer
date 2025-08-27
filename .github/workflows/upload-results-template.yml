@@ -26,7 +26,7 @@ jobs:
       run: pip install azure-identity azure-storage-blob
     - name: Upload results to Azure Blob Storage
       env:
-        AZURE_STORAGE_ACCOUNT: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
+        AZURE_STORAGE_ACCOUNT: ${{ vars.STORAGE_ACCOUNT_NAME }}
         PYTHONBUFFERED: 1
       run: |
         python scripts/common/upload_benchmark_result.py \

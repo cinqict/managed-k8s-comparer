@@ -20,8 +20,15 @@ def main():
     if not account_name:
         print("AZURE_STORAGE_ACCOUNT environment variable not set.")
         sys.exit(1)
-    if not all([client_id, tenant_id, client_secret]):
-        print("Azure SPN environment variables not set.")
+    missing = []
+    if not client_id:
+        missing.append('AZURE_CLIENT_ID')
+    if not tenant_id:
+        missing.append('AZURE_TENANT_ID')
+    if not client_secret:
+        missing.append('AZURE_CLIENT_SECRET')
+    if missing:
+        print(f"Azure SPN environment variables not set: {', '.join(missing)}")
         sys.exit(1)
 
     # Authenticate using ClientSecretCredential (SPN)

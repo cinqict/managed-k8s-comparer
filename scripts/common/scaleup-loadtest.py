@@ -49,12 +49,15 @@ def main():
         out = run(f"kubectl get pods -l {LABEL} -o json")
         data = json.loads(out)
         current_nodes = set()
+        pending_pods = 0
         for pod in data['items']:
             node = pod['spec'].get('nodeName')
             if node:
                 current_nodes.add(node)
+            if pod['status']['phase'] == 'Pending':
+                pending_pods += 1
         new_nodes = current_nodes - initial_nodes
-        print(f"Current nodes: {current_nodes}, New nodes: {new_nodes}")
+        print(f"Current nodes: {current_nodes}, New nodes: {new_nodes}, Pending pods: {pending_pods}")
         if new_nodes:
             print(f"Pod(s) scheduled on new node(s): {new_nodes}. Stopping scale-up.")
             found_new_node = True
@@ -68,12 +71,15 @@ def main():
             out = run(f"kubectl get pods -l {LABEL} -o json")
             data = json.loads(out)
             current_nodes = set()
+            pending_pods = 0
             for pod in data['items']:
                 node = pod['spec'].get('nodeName')
                 if node:
                     current_nodes.add(node)
+                if pod['status']['phase'] == 'Pending':
+                    pending_pods += 1
             new_nodes = current_nodes - initial_nodes
-            print(f"Polling {i+1}/36: Current nodes: {current_nodes}, New nodes: {new_nodes}")
+            print(f"Polling {i+1}/36: Current nodes: {current_nodes}, New nodes: {new_nodes}, Pending pods: {pending_pods}")
             if new_nodes:
                 print(f"Pod(s) scheduled on new node(s): {new_nodes}. Stopping experiment.")
                 break

@@ -41,14 +41,11 @@ def main():
         if node:
             initial_nodes.add(node)
 
-    while True:
-        replicas += 1
-        if replicas < 30:
-            set_replicas(replicas)
-            print(f"Scaled to {replicas} replicas.")
-        else:
-            print(f"Round {replicas} skipped to avoid excessive scaling.")
-        time.sleep(8)
+    found_new_node = False
+    for r in range(replicas + 1, 31):
+        set_replicas(r)
+        print(f"Scaled to {r} replicas.")
+        time.sleep(5)
         out = run(f"kubectl get pods -l {LABEL} -o json")
         data = json.loads(out)
         current_nodes = set()
@@ -60,7 +57,31 @@ def main():
         print(f"Current nodes: {current_nodes}, New nodes: {new_nodes}")
         if new_nodes:
             print(f"Pod(s) scheduled on new node(s): {new_nodes}. Stopping scale-up.")
+            found_new_node = True
             break
+
+    # Poll for up to 3 minutes (36 x 5s) for a new node if not found during scaling
+    if not found_new_node:
+        print("No new node detected during scaling. Polling for up to 3 more minutes...")
+        for i in range(36):
+            time.sleep(5)
+            out = run(f"kubectl get pods -l {LABEL} -o json")
+            data = json.loads(out)
+            current_nodes = set()
+            for pod in data['items']:
+                node = pod['spec'].get('nodeName')
+                if node:
+                    current_nodes.add(node)
+            new_nodes = current_nodes - initial_nodes
+            print(f"Polling {i+1}/36: Current nodes: {current_nodes}, New nodes: {new_nodes}")
+            if new_nodes:
+                print(f"Pod(s) scheduled on new node(s): {new_nodes}. Stopping experiment.")
+                break
+        else:
+            print("No new node detected after polling. Giving up.")
+
+    print("Resetting replicas to 2.")
+    set_replicas(2)
 
 if __name__ == "__main__":
 	main()

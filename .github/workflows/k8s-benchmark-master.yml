@@ -84,7 +84,23 @@ jobs:
       csp: ${{ github.event.inputs.csp }}
     
   destroy:
-    if: ${{ github.event.inputs.demo_mode != 'true'}}
+    if: ${{ !github.event.inputs.demo_mode }}
+    needs: measure_scaleup
+    uses: ./.github/workflows/terraform-destroy.yml
+    secrets: inherit
+    with:
+      target: ${{ github.event.inputs.csp }}
+
+  destroy2:
+    if: ${{ github.event.inputs.demo_mode == false }}
+    needs: measure_scaleup
+    uses: ./.github/workflows/terraform-destroy.yml
+    secrets: inherit
+    with:
+      target: ${{ github.event.inputs.csp }}
+
+  destroy3:
+    if: ${{ github.event.inputs.demo_mode != true}}
     needs: measure_scaleup
     uses: ./.github/workflows/terraform-destroy.yml
     secrets: inherit

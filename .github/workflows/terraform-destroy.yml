@@ -20,6 +20,11 @@ on:
           - hetzner
 
 jobs:
+  sign-of-life:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sign of life
+        run: echo "Starting Terraform destroy for ${{ github.event.inputs.target }}"
   destroy-ovh:
     if: ${{ github.event.inputs.target == 'ovh' }}
     runs-on: ubuntu-latest

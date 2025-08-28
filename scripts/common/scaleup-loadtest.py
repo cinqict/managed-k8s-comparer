@@ -44,7 +44,7 @@ def main():
     found_new_node = False
     for r in range(replicas + 1, 31):
         set_replicas(r)
-        print(f"Scaled to {r} replicas.")
+        print(f"Tried scaling to {r} replicas, actual: {get_replicas()}")
         time.sleep(5)
         out = run(f"kubectl get pods -l {LABEL} -o json")
         data = json.loads(out)

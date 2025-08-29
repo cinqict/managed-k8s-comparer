@@ -14,13 +14,15 @@ def run(cmd, env=None):
 run("pip install ovh")
 
 # Run admin credential retrieval
-run("python retrieve_pg_admin_credentials.py")
+script_path = os.path.join(os.path.dirname(__file__), "retrieve_pg_admin_credentials.py")
+run(f"python {script_path}")
 
 # Export OVH DB credentials to files
 outputs = ["pgsql_host", "pgsql_port", "pgsql_dbname"]
+tf_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 for output in outputs:
     out_file = f"{output}.txt"
-    cmd = f"terraform -chdir=.. output -raw {output} > {out_file}"
+    cmd = f"terraform -chdir={tf_dir} output -raw {output} > {out_file}"
     run(cmd)
 
 print("OVH post-apply steps complete.")

@@ -172,5 +172,12 @@ jobs:
             -backend-config="container_name=stackittfstate" \
             -backend-config="key=terraform.tfstate"
 
-      - name: Terraform Destroy
+      - name: First Terraform Destroy (ignore errors)
+        run: |
+          terraform -chdir=terraform/stackit destroy -auto-approve || true
+
+      - name: Wait before retrying destroy
+        run: sleep 20
+
+      - name: Final Terraform Destroy
         run: terraform -chdir=terraform/stackit destroy -auto-approve

@@ -24,9 +24,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Sign of life
-        run: echo "Starting Terraform destroy for ${{ github.event.inputs.target }}"
+        run: |
+          TARGET="${{ github.event.inputs.target }}"
+          ALT_TARGET="${{ inputs.target }}"
+          if [ -n "$ALT_TARGET" ] && [ ${#ALT_TARGET} -ge ${#TARGET} ]; then
+            FINAL_TARGET="$ALT_TARGET"
+          else
+            FINAL_TARGET="$TARGET"
+          fi
+          echo "Starting Terraform destroy for $FINAL_TARGET"
   destroy-ovh:
-    if: ${{ github.event.inputs.target == 'ovh' }}
+    if: ${{ (github.event.inputs.target == 'ovh') || (inputs.target == 'ovh') }}
     runs-on: ubuntu-latest
     env:
       TF_VAR_ovh_endpoint: ${{ vars.OVH_ENDPOINT }}
@@ -59,7 +67,7 @@ jobs:
         run: terraform -chdir=terraform/ovh destroy -auto-approve
 
   destroy-azure:
-    if: ${{ github.event.inputs.target == 'azure' }}
+    if: ${{ (github.event.inputs.target == 'azure') || (inputs.target == 'azure') }}
     runs-on: ubuntu-latest
     env:
       ARM_CLIENT_ID: ${{ secrets.AZ_CLIENT_ID }}
@@ -87,7 +95,7 @@ jobs:
         run: terraform -chdir=terraform/azure destroy -auto-approve
 
   destroy-hetzner:
-    if: ${{ github.event.inputs.target == 'hetzner' }}
+    if: ${{ (github.event.inputs.target == 'hetzner') || (inputs.target == 'hetzner') }}
     runs-on: ubuntu-latest
     env:
       ARM_CLIENT_ID: ${{ secrets.AZ_CLIENT_ID }}
@@ -130,7 +138,7 @@ jobs:
         run: terraform -chdir=terraform/hetzner destroy -auto-approve
 
   destroy-stackit:
-    if: ${{ github.event.inputs.target == 'stackit' }}
+    if: ${{ (github.event.inputs.target == 'stackit') || (inputs.target == 'stackit') }}
     runs-on: ubuntu-latest
     env:
       TF_VAR_stackit_project_id: ${{ secrets.STACKIT_PROJECT_ID }}

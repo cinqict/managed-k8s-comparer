@@ -51,7 +51,7 @@ jobs:
           attempts=0
           results=""
           while [ $attempts -lt 5 ]; do
-            results=$(curl --max-time 10 http://$APP_IP/pgsql/latency -H "Content-Type: application/json" 2>/dev/null)
+            results=$(curl --max-time 10 http://$APP_IP/pgsql/latency -H "Content-Type: application/json" 2>/dev/null | jq -c .)
             if [ -n "$results" ]; then
               echo "Received results from dummy-app."
               break

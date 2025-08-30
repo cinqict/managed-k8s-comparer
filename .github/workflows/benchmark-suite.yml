@@ -4,30 +4,19 @@ name: 'Benchmark Suite'
 on:
   workflow_dispatch:
     inputs:
-      run_azure:
-        description: 'Run Azure benchmarks'
+      csp:
+        description: 'Select Cloud Service Provider to run benchmarks on'
         required: false
-        type: boolean
-        default: true
-      run_stackit:
-        description: 'Run Stackit benchmarks'
-        required: false
-        type: boolean
-        default: true
-      run_ovh:
-        description: 'Run OVH benchmarks'
-        required: false
-        type: boolean
-        default: false
-      run_hetzner:
-        description: 'Run Hetzner benchmarks'
-        required: false
-        type: boolean
-        default: true
+        default: 'hetzner'
+        type: choice
+        options:
+          - azure
+          - stackit
+          - ovh
+          - hetzner
 
 jobs:
-  run-benchmark-azure:
-    if : ${{ github.event.inputs.run_azure == 'true' }}
+  run-benchmark:
     uses: ./.github/workflows/k8s-benchmark-master.yml
     secrets: inherit
     strategy:
@@ -37,43 +26,4 @@ jobs:
     with:
       demo_mode: false
       loadtest: scaleup
-      csp: azure
-
-  run-benchmark-hetzner:
-    if : ${{ github.event.inputs.run_hetzner == 'true' }}
-    uses: ./.github/workflows/k8s-benchmark-master.yml
-    secrets: inherit
-    strategy:
-      matrix:
-        run_id: [1,2,3,4]
-      max-parallel: 1
-    with:
-      demo_mode: false
-      loadtest: scaleup
-      csp: hetzner
-
-  run-benchmark-ovh:
-    if : ${{ github.event.inputs.run_ovh == 'true' }}
-    uses: ./.github/workflows/k8s-benchmark-master.yml
-    secrets: inherit
-    strategy:
-      matrix:
-        run_id: [1,2,3,4]
-      max-parallel: 1
-    with:
-      demo_mode: false
-      loadtest: scaleup
-      csp: ovh
-
-  run-benchmark-stackit:
-    if : ${{ github.event.inputs.run_stackit == 'true' }}
-    uses: ./.github/workflows/k8s-benchmark-master.yml
-    secrets: inherit
-    strategy:
-      matrix:
-        run_id: [1,2,3,4]
-      max-parallel: 1
-    with:
-      demo_mode: false
-      loadtest: scaleup
-      csp: stackit
+      csp: ${{ github.event.inputs.csp }}

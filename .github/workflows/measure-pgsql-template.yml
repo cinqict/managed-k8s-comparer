@@ -67,7 +67,7 @@ jobs:
         shell: bash
       - name: append results to results.json
         run: |
-          echo $results | jq '. | {pgsql_latency: .}' >> results.json
+          jq --argjson pgsql "$results" '.pgsql_latency = $pgsql' results.json > results.json.tmp && mv results.json.tmp results.json
       - name: Upload updated benchmark results artifact
         uses: actions/upload-artifact@v4
         with:

@@ -41,7 +41,8 @@ def main():
     # Add kube_latency section
     if "kube_latency" not in results:
         results["kube_latency"] = {}
-    results["kube_latency"]["timestamp"] = now_utc()
+    measure_kubectl_latency(["get", "nodes"])
+    results["kube_latency"]["start_timestamp"] = now_utc()
     results["kube_latency"]["get_nodes_latency_ms"] = measure_kubectl_latency(["get", "nodes"])
     results["kube_latency"]["get_pods_latency_ms"] = measure_kubectl_latency(["get", "pods", "-n", NAMESPACE])
     configmap_name = "latency-test-cm"
@@ -51,6 +52,7 @@ def main():
     results["kube_latency"]["delete_configmap_latency_ms"] = measure_kubectl_latency([
         "delete", "configmap", configmap_name, "-n", NAMESPACE
     ])
+    results["kube_latency"]["end_timestamp"] = now_utc()
 
     with open(RESULTS_FILE, "w") as f:
         json.dump(results, f, indent=2)

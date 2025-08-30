@@ -80,7 +80,7 @@ jobs:
       - name: Download benchmark results artifact
         uses: actions/download-artifact@v4
         with:
-          name: benchmark-results-infra
+          name: benchmark-results-latency
           path: .
       - name: Set up Python
         uses: actions/setup-python@v5

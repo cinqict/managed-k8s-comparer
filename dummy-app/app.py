@@ -1,3 +1,4 @@
+import time
 import os
 import asyncpg
 from fastapi import FastAPI, HTTPException
@@ -54,7 +55,7 @@ async def write_message(msg: Message):
         async with app.state.pool.acquire() as conn:
             await conn.execute(
                 "INSERT INTO messages (content, created_at) VALUES ($1, $2)",
-                msg.content, datetime.utcnow()
+                msg.content, datetime.now(datetime.timezone.utc)
             )
         return {"result": "written"}
     except Exception as e:
@@ -68,6 +69,39 @@ async def read_messages():
         return [{"id": r["id"], "content": r["content"], "created_at": r["created_at"].isoformat()} for r in rows]
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+@app.get("/pgsql/latency")
+async def pgsql_latency():
+    result = {}
+    # Connection latency
+    conn_start = time.perf_counter()
+    try:
+        async with app.state.pool.acquire() as conn:
+            conn_latency = (time.perf_counter() - conn_start) * 1000
+            result["connection_latency_ms"] = conn_latency
+            # Bulk write latency
+            write_start = time.perf_counter()
+            await conn.execute("CREATE TABLE IF NOT EXISTS latency_test (id SERIAL PRIMARY KEY, val TEXT)")
+            await conn.execute("DELETE FROM latency_test")
+            for i in range(1000):
+                await conn.execute("INSERT INTO latency_test (val) VALUES ($1)", f"row-{i}")
+            write_latency = (time.perf_counter() - write_start) * 1000
+            result["bulk_write_latency_ms"] = write_latency
+            # Bulk read latency
+            read_start = time.perf_counter()
+            rows = await conn.fetch("SELECT * FROM latency_test")
+            read_latency = (time.perf_counter() - read_start) * 1000
+            result["bulk_read_latency_ms"] = read_latency
+            result["bulk_read_rowcount"] = len(rows)
+            # Transaction commit latency
+            txn_start = time.perf_counter()
+            async with conn.transaction():
+                await conn.execute("INSERT INTO latency_test (val) VALUES ('txn-test')")
+            txn_latency = (time.perf_counter() - txn_start) * 1000
+            result["transaction_commit_latency_ms"] = txn_latency
+    except Exception as e:
+        result["error"] = str(e)
+    return result
 
 @app.get("/compute")
 async def compute_hash(iterations: int = 100000):
@@ -82,7 +116,7 @@ async def compute_hash(iterations: int = 100000):
         async with app.state.pool.acquire() as conn:
             await conn.execute(
                 "INSERT INTO messages (content, created_at) VALUES ($1, $2)",
-                f"hash:{hash_hex}", datetime.utcnow()
+                f"hash:{hash_hex}", datetime.now(datetime.timezone.utc)
             )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Hash computed but DB insert failed: {str(e)}")

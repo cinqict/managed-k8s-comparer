@@ -28,6 +28,19 @@ on:
           - ovh
           - hetzner
           - aws
+  workflow_call:
+    inputs:
+      demo_mode:
+        required: false
+        type: boolean
+        default: false
+      loadtest:
+        required: false
+        type: string
+        default: 'scaleup'
+      csp:
+        required: true
+        type: string
 
 jobs:
   init_results:
@@ -52,8 +65,13 @@ jobs:
     uses: ./.github/workflows/monitoring-template.yml
     secrets: inherit
 
-  app_ci:
+  measure_latency:
     needs: metrics_server
+    uses: ./.github/workflows/measure-latency-template.yml
+    secrets: inherit
+
+  app_ci:
+    needs: measure_latency
     uses: ./.github/workflows/app-ci-template.yml
     secrets: inherit
 
@@ -76,8 +94,13 @@ jobs:
     uses: ./.github/workflows/measure-scaleup-template.yml
     secrets: inherit
 
-  upload_results:
+  measure_pgsql:
     needs: measure_scaleup
+    uses: ./.github/workflows/measure-pgsql-template.yml
+    secrets: inherit
+
+  upload_results:
+    needs: measure_pgsql
     uses: ./.github/workflows/upload-results-template.yml
     secrets: inherit
     with:

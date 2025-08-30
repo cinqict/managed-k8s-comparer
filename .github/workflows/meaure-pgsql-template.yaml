@@ -1,0 +1,60 @@
+name: 'PGSQL Latency Measurement'
+on:
+  workflow_call:
+    inputs:
+      demo_mode:
+        required: false
+        type: boolean
+      loadtest:
+        required: false
+        type: string
+        default: 'locust'
+jobs:
+  loadtest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Download kubeconfig artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: kubeconfig
+          path: .
+      - name: Set KUBECONFIG env var
+        run: echo "KUBECONFIG=$GITHUB_WORKSPACE/kubeconfig.yaml" >> $GITHUB_ENV
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+      - name: download results artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: benchmark-results-scaleup
+      - name: Trigger PGSQL latency test
+        run: |
+          # Wait up to 10 minutes for the external IP
+          for i in {1..60}; do
+            APP_IP=$(kubectl get svc dummy-app -o jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null)
+            if [ -n "$APP_IP" ]; then
+              echo "Found external IP: $APP_IP"
+              break
+            fi
+            echo "Waiting for external IP... ($i/60)"
+            echo "kubectl get svc dummy-app -o wide output:"
+            kubectl get svc dummy-app -o wide
+            sleep 10
+          done
+          if [ -z "$APP_IP" ]; then
+            echo "ERROR: No external IP found for dummy-app-service after 10 minutes. Exiting."
+            exit 1
+          fi
+          results = $(curl http://$APP_IP/pgsql/latency -H "Content-Type: application/json")
+          echo $results
+        shell: bash
+      - name: append results to results.json
+        run: |
+          echo $results | jq '. | {pgsql_latency: .}' >> results.json
+      - name: Upload updated benchmark results artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results

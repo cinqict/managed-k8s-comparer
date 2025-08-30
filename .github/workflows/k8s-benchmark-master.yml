@@ -46,13 +46,13 @@ jobs:
   init_results:
     uses: ./.github/workflows/init-results-template.yml
     with:
-      csp: ${{ github.event.inputs.csp }}
+      csp: ${{ github.event.inputs.csp || inputs.csp }}
 
   infra:
     uses: ./.github/workflows/terraform.yml
     secrets: inherit
     with:
-      csp: ${{ github.event.inputs.csp || 'ovh' }}
+      csp: ${{ github.event.inputs.csp || inputs.csp }}
 
   metrics_server:
     needs: infra
@@ -60,7 +60,7 @@ jobs:
     secrets: inherit
 
   monitoring:
-    if: ${{ github.event.inputs.demo_mode == 'true' }}
+    if: ${{ (github.event.inputs.demo_mode == 'true') || (inputs.demo_mode == 'true') }}
     needs: metrics_server
     uses: ./.github/workflows/monitoring-template.yml
     secrets: inherit
@@ -81,13 +81,13 @@ jobs:
     secrets: inherit
 
   loadtest:
-    if: ${{ github.event.inputs.loadtest != 'none' }}
+    if: ${{ (github.event.inputs.loadtest != 'none') || (inputs.loadtest != 'none') }}
     needs: app_ci
     uses: ./.github/workflows/loadtest-template.yml
     secrets: inherit
     with:
-      demo_mode: ${{ github.event.inputs.demo_mode == 'true' }}
-      loadtest: ${{ github.event.inputs.loadtest }}
+      demo_mode: ${{ (github.event.inputs.demo_mode == 'true') || (inputs.demo_mode == 'true') }}
+      loadtest: ${{ github.event.inputs.loadtest || inputs.loadtest }}
 
   measure_scaleup:
     needs: [loadtest, measure_external_ip]
@@ -104,12 +104,12 @@ jobs:
     uses: ./.github/workflows/upload-results-template.yml
     secrets: inherit
     with:
-      csp: ${{ github.event.inputs.csp }}
+      csp: ${{ github.event.inputs.csp || inputs.csp }}
 
   destroy:
-    if: ${{ github.event.inputs.demo_mode != true}}
+    if: ${{ (github.event.inputs.demo_mode != true) && (inputs.demo_mode != true)}}
     needs: measure_pgsql
     uses: ./.github/workflows/terraform-destroy.yml
     secrets: inherit
     with:
-      target: ${{ github.event.inputs.csp }}
+      target: ${{ github.event.inputs.csp || inputs.csp }}

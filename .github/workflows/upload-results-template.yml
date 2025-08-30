@@ -32,7 +32,8 @@ jobs:
         AZURE_CLIENT_SECRET: ${{ secrets.AZ_CLIENT_SECRET }}
         PYTHONBUFFERED: 1
       run: |
+        dt=$(date -u +"%Y-%m-%d-%H-%M")
         python scripts/common/upload_benchmark_result.py \
           --file results.json \
           --container benchmark-results \
-          --blob ${{ github.event.inputs.csp }}-${{ github.run_id }}-results.json
+          --blob ${{ github.event.inputs.csp }}-$dt-results.json

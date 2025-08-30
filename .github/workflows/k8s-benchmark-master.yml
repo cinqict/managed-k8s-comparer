@@ -11,7 +11,7 @@ on:
       loadtest:
         description: 'Load test to run'
         required: false
-        default: 'none'
+        default: 'scaleup'
         type: choice
         options:
           - none

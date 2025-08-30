@@ -30,13 +30,13 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: benchmark-results-scaleup
-      - name: Trigger PGSQL latency test
+      - name: Wait for external IP
         run: |
-          # Wait up to 10 minutes for the external IP
           for i in {1..60}; do
             APP_IP=$(kubectl get svc dummy-app -o jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null)
             if [ -n "$APP_IP" ]; then
               echo "Found external IP: $APP_IP"
+              echo "APP_IP=$APP_IP" >> $GITHUB_ENV
               break
             fi
             echo "Waiting for external IP... ($i/60)"
@@ -48,26 +48,12 @@ jobs:
             echo "ERROR: No external IP found for dummy-app-service after 10 minutes. Exiting."
             exit 1
           fi
-          attempts=0
-          results=""
-          while [ $attempts -lt 5 ]; do
-            results=$(curl --max-time 10 http://$APP_IP/pgsql/latency -H "Content-Type: application/json" 2>/dev/null | jq -c .)
-            if [ -n "$results" ]; then
-              echo "Received results from dummy-app."
-              break
-            fi
-            echo "Attempt $((attempts+1))/5: No reply from server, retrying in 5s..."
-            sleep 5
-            attempts=$((attempts+1))
-          done
-          if [ -z "$results" ]; then
-            echo "WARNING: No results received from dummy-app after 5 attempts. Continuing with empty results."
-          fi
-          echo $results
         shell: bash
-      - name: append results to results.json
+      - name: Run PGSQL latency measurement and update results.json
         run: |
-          jq --argjson pgsql "$results" '.pgsql_latency = $pgsql' results.json > results.json.tmp && mv results.json.tmp results.json
+          pip install requests
+          python monitoring/measure_pgsql.py "http://$APP_IP/pgsql/latency"
+        shell: bash
       - name: Upload updated benchmark results artifact
         uses: actions/upload-artifact@v4
         with:

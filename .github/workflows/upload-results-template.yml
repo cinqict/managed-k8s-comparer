@@ -1,0 +1,38 @@
+name: Upload Results artifact to Azure Blob Storage
+
+on:
+  workflow_call:
+    inputs:
+      csp:
+        required: true
+        type: string
+
+jobs:
+  upload-template:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    - name: Download benchmark-results artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: benchmark-results
+        path: .
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+    - name: Install Azure SDK
+      run: pip install azure-identity azure-storage-blob
+    - name: Upload results to Azure Blob Storage
+      env:
+        AZURE_STORAGE_ACCOUNT: ${{ vars.STORAGE_ACCOUNT_NAME }}
+        AZURE_CLIENT_ID: ${{ secrets.AZ_CLIENT_ID }}
+        AZURE_TENANT_ID: ${{ vars.AZ_TENANT_ID }}
+        AZURE_CLIENT_SECRET: ${{ secrets.AZ_CLIENT_SECRET }}
+        PYTHONBUFFERED: 1
+      run: |
+        python scripts/common/upload_benchmark_result.py \
+          --file results.json \
+          --container benchmark-results \
+          --blob ${{ github.event.inputs.csp }}-${{ github.run_id }}-results.json

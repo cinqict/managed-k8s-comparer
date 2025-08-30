@@ -8,6 +8,15 @@ on:
         required: false
         default: false
         type: boolean
+      loadtest:
+        description: 'Load test to run'
+        required: false
+        default: 'none'
+        type: choice
+        options:
+          - none
+          - locust
+          - scaleup
       csp:
         description: 'Select Cloud Service Provider'
         required: true
@@ -19,18 +28,31 @@ on:
           - ovh
           - hetzner
           - aws
+  workflow_call:
+    inputs:
+      demo_mode:
+        required: false
+        type: boolean
+        default: false
+      loadtest:
+        required: false
+        type: string
+        default: 'scaleup'
+      csp:
+        required: true
+        type: string
 
 jobs:
   init_results:
     uses: ./.github/workflows/init-results-template.yml
     with:
-      csp: ${{ github.event.inputs.csp }}
+      csp: ${{ github.event.inputs.csp || inputs.csp }}
 
   infra:
     uses: ./.github/workflows/terraform.yml
     secrets: inherit
     with:
-      csp: ${{ github.event.inputs.csp || 'ovh' }}
+      csp: ${{ github.event.inputs.csp || inputs.csp }}
 
   metrics_server:
     needs: infra
@@ -38,13 +60,18 @@ jobs:
     secrets: inherit
 
   monitoring:
-    if: ${{ github.event.inputs.demo_mode == 'true' }}
+    if: ${{ (github.event.inputs.demo_mode == 'true') || (inputs.demo_mode == 'true') }}
     needs: metrics_server
     uses: ./.github/workflows/monitoring-template.yml
     secrets: inherit
 
-  app_ci:
+  measure_latency:
     needs: metrics_server
+    uses: ./.github/workflows/measure-latency-template.yml
+    secrets: inherit
+
+  app_ci:
+    needs: measure_latency
     uses: ./.github/workflows/app-ci-template.yml
     secrets: inherit
 
@@ -53,14 +80,36 @@ jobs:
     uses: ./.github/workflows/measure-external-ip-template.yml
     secrets: inherit
 
-  locust:
+  loadtest:
+    if: ${{ (github.event.inputs.loadtest != 'none') || (inputs.loadtest != 'none') }}
     needs: app_ci
-    uses: ./.github/workflows/locust-template.yml
+    uses: ./.github/workflows/loadtest-template.yml
     secrets: inherit
     with:
-      demo_mode: ${{ github.event.inputs.demo_mode == 'true' }}
+      demo_mode: ${{ (github.event.inputs.demo_mode == 'true') || (inputs.demo_mode == 'true') }}
+      loadtest: ${{ github.event.inputs.loadtest || inputs.loadtest }}
 
   measure_scaleup:
-    needs: locust
+    needs: [loadtest, measure_external_ip]
     uses: ./.github/workflows/measure-scaleup-template.yml
     secrets: inherit
+
+  measure_pgsql:
+    needs: measure_scaleup
+    uses: ./.github/workflows/measure-pgsql-template.yml
+    secrets: inherit
+
+  upload_results:
+    needs: measure_pgsql
+    uses: ./.github/workflows/upload-results-template.yml
+    secrets: inherit
+    with:
+      csp: ${{ github.event.inputs.csp || inputs.csp }}
+
+  destroy:
+    if: ${{ (github.event.inputs.demo_mode != true) && (inputs.demo_mode != true)}}
+    needs: measure_pgsql
+    uses: ./.github/workflows/terraform-destroy.yml
+    secrets: inherit
+    with:
+      target: ${{ github.event.inputs.csp || inputs.csp }}

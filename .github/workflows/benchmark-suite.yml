@@ -17,6 +17,7 @@ on:
 
 jobs:
   run-benchmark:
+    name: Benchmark - ${{ github.event.inputs.csp }}
     uses: ./.github/workflows/k8s-benchmark-master.yml
     secrets: inherit
     strategy:

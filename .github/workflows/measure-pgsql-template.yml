@@ -48,7 +48,7 @@ jobs:
             echo "ERROR: No external IP found for dummy-app-service after 10 minutes. Exiting."
             exit 1
           fi
-          results = $(curl http://$APP_IP/pgsql/latency -H "Content-Type: application/json")
+          results=$(curl http://$APP_IP/pgsql/latency -H "Content-Type: application/json")
           echo $results
         shell: bash
       - name: append results to results.json

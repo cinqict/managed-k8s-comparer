@@ -108,7 +108,7 @@ jobs:
 
   destroy:
     if: ${{ github.event.inputs.demo_mode != true}}
-    needs: measure_scaleup
+    needs: measure_pgsql
     uses: ./.github/workflows/terraform-destroy.yml
     secrets: inherit
     with:

@@ -48,7 +48,21 @@ jobs:
             echo "ERROR: No external IP found for dummy-app-service after 10 minutes. Exiting."
             exit 1
           fi
-          results=$(curl http://$APP_IP/pgsql/latency -H "Content-Type: application/json")
+          attempts=0
+          results=""
+          while [ $attempts -lt 5 ]; do
+            results=$(curl --max-time 10 http://$APP_IP/pgsql/latency -H "Content-Type: application/json" 2>/dev/null)
+            if [ -n "$results" ]; then
+              echo "Received results from dummy-app."
+              break
+            fi
+            echo "Attempt $((attempts+1))/5: No reply from server, retrying in 5s..."
+            sleep 5
+            attempts=$((attempts+1))
+          done
+          if [ -z "$results" ]; then
+            echo "WARNING: No results received from dummy-app after 5 attempts. Continuing with empty results."
+          fi
           echo $results
         shell: bash
       - name: append results to results.json

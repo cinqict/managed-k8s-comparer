@@ -55,7 +55,7 @@ async def write_message(msg: Message):
         async with app.state.pool.acquire() as conn:
             await conn.execute(
                 "INSERT INTO messages (content, created_at) VALUES ($1, $2)",
-                msg.content, datetime.now(timezone.utc)
+                msg.content, datetime.now()
             )
         return {"result": "written"}
     except Exception as e:

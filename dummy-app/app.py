@@ -3,7 +3,7 @@ import os
 import asyncpg
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from datetime import datetime, timezone
+from datetime import datetime
 from contextlib import asynccontextmanager
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -55,7 +55,7 @@ async def write_message(msg: Message):
         async with app.state.pool.acquire() as conn:
             await conn.execute(
                 "INSERT INTO messages (content, created_at) VALUES ($1, $2)",
-                msg.content, datetime.now()
+                msg.content, datetime.utcnow()
             )
         return {"result": "written"}
     except Exception as e:
@@ -116,7 +116,7 @@ async def compute_hash(iterations: int = 100000):
         async with app.state.pool.acquire() as conn:
             await conn.execute(
                 "INSERT INTO messages (content, created_at) VALUES ($1, $2)",
-                f"hash:{hash_hex}", datetime.now(datetime.timezone.utc)
+                f"hash:{hash_hex}", datetime.utcnow()
             )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Hash computed but DB insert failed: {str(e)}")

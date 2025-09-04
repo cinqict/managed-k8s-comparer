@@ -3,7 +3,7 @@ import os
 import asyncpg
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from datetime import datetime
+from datetime import datetime, timezone
 from contextlib import asynccontextmanager
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -55,7 +55,7 @@ async def write_message(msg: Message):
         async with app.state.pool.acquire() as conn:
             await conn.execute(
                 "INSERT INTO messages (content, created_at) VALUES ($1, $2)",
-                msg.content, datetime.now(datetime.timezone.utc)
+                msg.content, datetime.now(timezone.utc)
             )
         return {"result": "written"}
     except Exception as e:

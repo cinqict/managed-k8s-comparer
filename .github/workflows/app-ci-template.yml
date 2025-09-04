@@ -36,12 +36,12 @@ jobs:
           context: ./dummy-app
           file: ./dummy-app/Dockerfile
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/dummy-app:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/dummy-app:demo
           platforms: linux/amd64,linux/arm64
       - name: Verify Docker Hub image manifest
         if: needs.check-secret.outputs.key-defined == 'true'
         run: |
-          docker buildx imagetools inspect ${{ secrets.DOCKERHUB_USERNAME }}/dummy-app:latest
+          docker buildx imagetools inspect ${{ secrets.DOCKERHUB_USERNAME }}/dummy-app:demo
       - name: Download kubeconfig artifact
         uses: actions/download-artifact@v4
         with:
@@ -68,9 +68,9 @@ jobs:
       - name: Set image source in k8s-deployment.yaml
         run: |
           if [ -n "${{ secrets.DOCKERHUB_USERNAME }}" ] && [ -n "${{ secrets.DOCKERHUB_TOKEN }}" ]; then
-            sed -i 's|{{DOCKERHUB_USER}}/dummy-app:latest|${{ secrets.DOCKERHUB_USERNAME }}/dummy-app:latest|' ./dummy-app/k8s-deployment.yaml
+            sed -i 's|{{DOCKERHUB_USER}}/dummy-app:latest|${{ secrets.DOCKERHUB_USERNAME }}/dummy-app:demo|' ./dummy-app/k8s-deployment.yaml
           else
-            sed -i 's|{{DOCKERHUB_USER}}/dummy-app:latest|nsavenije/dummy-app:latest|' ./dummy-app/k8s-deployment.yaml
+            sed -i 's|{{DOCKERHUB_USER}}/dummy-app:latest|nsavenije/dummy-app:demo|' ./dummy-app/k8s-deployment.yaml
           fi
       - name: Verify image replacement in k8s-deployment.yaml
         run: grep 'image:' ./dummy-app/k8s-deployment.yaml
